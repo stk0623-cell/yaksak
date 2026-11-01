@@ -1,0 +1,3265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>약싹 — 챙길수록 자라는 복약 습관</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F4EE;
+    --card: #FFFFFF;
+    --green: #3D8B59;
+    --green-soft: #E6F1E9;
+    --warn: #D9922E;
+    --miss: #D9604F;
+    --text: #2B2A27;
+    --sub: #7A766D;
+    --line: #E7E3D8;
+    --radius: 18px;
+    --shadow: 0 1px 2px rgba(60, 50, 30, .04), 0 4px 16px rgba(60, 50, 30, .06);
+    --sidebar-w: 232px;
+    --tabbar-h: 64px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; height: 100%; }
+
+  body {
+    font-family: 'Noto Sans KR', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button { font: inherit; cursor: pointer; }
+  [hidden] { display: none !important; }
+
+  /* ── 레이아웃 ── */
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--sidebar-w);
+    padding: 28px 16px;
+    background: var(--bg);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
+  .home-link { text-decoration: none; color: inherit; border-radius: 12px; }
+  .home-link:hover .brand-name { color: #347A4D; }
+  .home-link:focus-visible { outline: 2px solid var(--green); outline-offset: 4px; }
+  .brand-name { font-size: 22px; font-weight: 800; color: var(--green); letter-spacing: -.02em; }
+  .brand-slogan { font-size: 12px; color: var(--sub); margin-top: 2px; }
+
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+
+  .nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    color: var(--sub);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background .15s, color .15s;
+  }
+  .nav a:hover { background: rgba(61, 139, 89, .07); color: var(--text); }
+  .nav a.active { background: var(--card); color: var(--green); font-weight: 700; box-shadow: var(--shadow); }
+  .nav svg { width: 20px; height: 20px; flex: none; }
+
+  .main {
+    flex: 1;
+    margin-left: var(--sidebar-w);
+    padding: 36px 40px 48px;
+    max-width: calc(1180px + var(--sidebar-w));
+  }
+
+  /* ── 화면 ── */
+  .screen { display: none; }
+  .screen.active { display: block; animation: fade .2s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .screen-head { margin-bottom: 20px; }
+  .screen-head h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+  .screen-head p { margin: 4px 0 0; color: var(--sub); }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+  }
+  .placeholder { color: var(--sub); text-align: center; padding: 48px 24px; }
+
+  /* ── 하단 탭 바 (휴대폰) ── */
+  .tabbar { display: none; }
+
+  @media (max-width: 760px) {
+    .sidebar { display: none; }
+
+    .main {
+      margin-left: 0;
+      padding: 20px 16px calc(var(--tabbar-h) + 24px + env(safe-area-inset-bottom));
+    }
+
+    .mobile-brand { display: flex !important; }
+
+    .screen-head h1 { font-size: 22px; }
+
+    .tabbar {
+      display: flex;
+      position: fixed;
+      inset: auto 0 0 0;
+      height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+      background: var(--card);
+      border-top: 1px solid var(--line);
+      z-index: 50;
+    }
+    .tabbar a {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--sub);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .tabbar a.active { color: var(--green); font-weight: 700; }
+    .tabbar svg { width: 22px; height: 22px; }
+  }
+
+  .mobile-brand { display: none; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .mobile-brand .brand-name { font-size: 19px; }
+
+  /* ── 공통 버튼·칩 ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 16px; border-radius: 12px; border: 1px solid transparent;
+    font-weight: 600; font-size: 14px; white-space: nowrap;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .btn-primary { background: var(--green); color: #fff; }
+  .btn-primary:hover { background: #347A4D; }
+  .btn-ghost { background: var(--card); color: var(--text); border-color: var(--line); }
+  .btn-ghost:hover { border-color: #CFC9BA; background: #FBFAF6; }
+  .btn-danger { background: var(--miss); color: #fff; }
+  .btn-danger:hover { background: #C55444; }
+  .btn-text-danger { background: transparent; color: var(--miss); }
+  .btn-text-danger:hover { background: rgba(217, 96, 79, .08); }
+  .btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 10px; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 999px;
+    background: var(--green-soft); color: var(--green);
+    font-size: 12.5px; font-weight: 600; white-space: nowrap;
+  }
+  .chip .t { font-weight: 400; opacity: .8; }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 6px;
+    font-size: 12px; font-weight: 700; white-space: nowrap;
+  }
+  .badge-warn { background: #FBEEDB; color: #A86A16; }
+  .badge-muted { background: #EEEBE3; color: var(--sub); }
+  .badge-ok { background: var(--green-soft); color: var(--green); }
+  .badge-now { background: var(--green); color: #fff; }
+  .badge-miss { background: #FBE6E2; color: #B9473A; }
+
+  /* ── 오늘의 시간대 ── */
+  .card-title { margin: 0 0 12px; font-size: 16px; font-weight: 800; }
+  .slot-list { list-style: none; margin: 0 -8px; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .slot-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 11px 12px;
+    white-space: nowrap;
+  }
+  .slot-row .time { font-weight: 700; font-variant-numeric: tabular-nums; width: 46px; flex: none; }
+  .slot-row .name { width: 52px; flex: none; color: var(--sub); font-weight: 500; }
+  .slot-row .thumbs { flex: 1; min-width: 0; display: flex; overflow: hidden; }
+  .slot-row .thumbs .med-thumb { border: 2px solid #fff; border-radius: 10px; }
+  .slot-row .thumbs .med-thumb + .med-thumb { margin-left: -8px; }
+  .slot-row .badge { flex: none; }
+  .slot-row.is-done .thumbs { opacity: .55; }
+  .slot-row { cursor: pointer; border-radius: 12px; transition: background .12s; }
+  .slot-row:hover { background: #FAF8F3; }
+  .slot-row.selected { background: var(--green-soft); }
+
+  /* ── 오늘 화면 ── */
+  .today-head h1 { font-size: 26px; }
+  .today-head p { font-size: 15px; }
+  .today-head p b { color: var(--green); }
+  .progress { height: 8px; margin-top: 12px; max-width: 520px; background: #E6E1D4; border-radius: 99px; overflow: hidden; }
+  .progress-bar { height: 100%; width: 0; background: var(--green); border-radius: 99px; transition: width .4s ease; }
+
+  .today-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+  .today-main, .today-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  .side-placeholder { color: var(--sub); font-size: 13.5px; text-align: center; padding: 28px 8px; background: #FAF8F3; border-radius: 12px; }
+
+  .now-card { padding: 0; overflow: hidden; border-top: 6px solid var(--green); }
+  .now-card.tone-warn { border-top-color: var(--warn); }
+  .now-card.tone-miss { border-top-color: var(--miss); }
+  .now-card.tone-done { border-top-color: #CFC9BA; }
+  .now-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 20px 24px 6px; }
+  .now-kicker { font-size: 13px; font-weight: 700; color: var(--green); }
+  .tone-warn .now-kicker { color: #B87516; }
+  .tone-miss .now-kicker { color: #C24E3E; }
+  .tone-done .now-kicker { color: var(--sub); }
+  .now-title { margin: 2px 0 0; font-size: 22px; font-weight: 800; }
+  .now-title .t { color: var(--sub); font-weight: 600; font-size: 17px; margin-left: 6px; }
+
+  .dose-list { list-style: none; margin: 0; padding: 4px 24px; }
+  .dose { display: flex; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); }
+  .dose:first-child { border-top: 0; }
+  .dose-info { flex: 1; min-width: 0; }
+  .dose-name { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .dose-memo { font-size: 13.5px; color: var(--sub); margin-top: 2px; }
+  .dose-actions { display: flex; gap: 6px; flex: none; align-items: center; }
+  .dose.is-checked .med-thumb, .dose.is-checked .dose-name, .dose.is-checked .dose-memo { opacity: .55; }
+
+  .snooze-wrap { position: relative; }
+  .snooze-menu {
+    position: absolute; right: 0; top: calc(100% + 6px); z-index: 20;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 6px; min-width: 120px;
+  }
+  .snooze-menu button {
+    display: block; width: 100%; text-align: left; border: 0; background: none;
+    padding: 9px 12px; border-radius: 8px; font-size: 14px; white-space: nowrap;
+  }
+  .snooze-menu button:hover { background: var(--green-soft); color: var(--green); }
+
+  .now-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 14px 24px 18px; border-top: 1px solid var(--line); background: #FCFBF8;
+  }
+  .now-foot .legal { font-size: 12.5px; color: var(--sub); }
+  .now-empty { padding: 8px 24px 24px; color: var(--sub); }
+
+  /* ── 토스트 ── */
+  .corner {
+    position: fixed; top: 20px; right: 20px; z-index: 200; width: 360px; max-width: calc(100vw - 24px);
+    display: flex; flex-direction: column; gap: 10px; align-items: flex-end; pointer-events: none;
+  }
+  .toasts, .alerts { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; width: 100%; }
+
+  /* ── 화면 안 알림 카드 ── */
+  .alert {
+    pointer-events: auto; width: 100%;
+    background: var(--card); border-radius: 18px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(40, 36, 28, .22); border-top: 5px solid var(--green);
+    animation: toast-in .25s ease;
+  }
+  .alert.kind-remind, .alert.kind-snooze, .alert.kind-email { border-top-color: var(--warn); }
+  .alert-body { display: flex; gap: 12px; padding: 14px 16px 10px; align-items: flex-start; cursor: pointer; }
+  .alert-body:hover .alert-title { color: var(--green); }
+  .alert-thumbs { display: flex; flex: none; }
+  .alert-thumbs .med-thumb { border: 2px solid #fff; border-radius: 12px; }
+  .alert-thumbs .med-thumb + .med-thumb { margin-left: -22px; }
+  .alert-text { min-width: 0; flex: 1; }
+  .alert-app { font-size: 11.5px; color: var(--sub); font-weight: 600; }
+  .alert-title { font-weight: 800; font-size: 15px; line-height: 1.35; margin-top: 1px; }
+  .alert-meds { font-size: 13px; color: var(--sub); margin-top: 3px; }
+  .alert-actions { display: flex; gap: 6px; padding: 0 16px 14px; }
+  .alert-actions .btn { flex: 1; }
+  .alert-actions [data-act="close"] { flex: none; }
+
+  /* ── 알림 상태 카드 ── */
+  .perm { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #FAF8F3; }
+  .perm .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: #B8B2A7; }
+  .perm.on .dot { background: var(--green); box-shadow: 0 0 0 4px rgba(61, 139, 89, .15); }
+  .perm.blocked .dot { background: var(--miss); }
+  .perm-text { flex: 1; min-width: 0; font-size: 13.5px; }
+  .perm-text b { display: block; font-size: 14px; }
+  .perm-text span { color: var(--sub); font-size: 12.5px; }
+  .stages { list-style: none; margin: 14px 0 0; padding: 0; position: relative; }
+  .stages li { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13.5px; position: relative; }
+  .stages li::before {
+    content: ''; width: 10px; height: 10px; border-radius: 50%; flex: none;
+    border: 2px solid var(--green); background: #fff; z-index: 1;
+  }
+  .stages li:not(:last-child)::after {
+    content: ''; position: absolute; left: 6px; top: 22px; bottom: -8px; width: 2px; background: var(--line);
+  }
+  .stages li.warn::before { border-color: var(--warn); }
+  .stages li.miss::before { border-color: var(--miss); }
+  .stages li.off { color: var(--sub); }
+  .stages li.off::before { border-color: #CFC9BA; }
+  .stages .when { min-width: 58px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none; }
+  .stages .off-tag { margin-left: auto; font-size: 12px; color: var(--sub); white-space: nowrap; padding-left: 8px; }
+  .warn-hint { color: #A86A16; font-weight: 600; }
+  .alert-note { font-size: 12.5px; color: var(--sub); margin: 12px 0 14px; }
+  .alert-note + .os-note { margin-top: -8px; }
+
+  /* PC 전용 문구(브라우저·Windows 알림 안내)는 휴대폰에서 숨기고, 휴대폰 전용 문구는 PC에서 숨김 */
+  @media (hover: none) and (pointer: coarse) {
+    .pc-only { display: none !important; }
+    .pref-head + .pc-only + .pref-block { border-top: 0; padding-top: 4px; }
+    #alertStatus .stages { margin-bottom: 16px; }
+  }
+  @media not all and (hover: none) and (pointer: coarse) {
+    .mobile-only { display: none !important; }
+  }
+  .os-note b { color: var(--text); font-weight: 600; }
+  .side-card .btn-block { width: 100%; }
+
+  /* ── 식물 카드 ── */
+  .plant-kicker { font-size: 13px; color: var(--sub); font-weight: 600; }
+  .plant-kicker b { color: var(--text); }
+  .plant-stage { text-align: center; margin-top: 4px; }
+  .plant-stage svg { display: block; margin: 0 auto; }
+  .plant-stage .name { font-weight: 800; font-size: 17px; margin-top: 2px; }
+  .plant-stage .name .wilt { font-size: 12px; font-weight: 700; color: #B9473A; background: #FBE6E2; border-radius: 6px; padding: 2px 6px; margin-left: 4px; vertical-align: 2px; }
+  .plant-next { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--sub); margin: 12px 0 6px; }
+  .plant-card .progress { margin-top: 0; max-width: none; }
+  .plant-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 14px; text-align: center; }
+  .plant-stats div { background: #FAF8F3; border-radius: 10px; padding: 8px 4px; }
+  .plant-stats b { display: block; font-size: 17px; font-weight: 800; }
+  .plant-stats span { font-size: 11.5px; color: var(--sub); white-space: nowrap; }
+  .plant-msg { margin: 12px 0 0; font-size: 13.5px; background: var(--green-soft); color: #2F6E46; padding: 10px 12px; border-radius: 12px; }
+  .plant-msg.sad { background: #FBEEDB; color: #8A5A12; }
+
+  /* ── 기록 ── */
+  .stat-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .stat { padding: 16px 18px; }
+  .stat .label { font-size: 13px; color: var(--sub); font-weight: 600; }
+  .stat .value { font-size: 26px; font-weight: 800; letter-spacing: -.02em; margin-top: 2px; }
+  .stat .value small { font-size: 14px; font-weight: 600; color: var(--sub); margin-left: 2px; }
+  .stat.good .value { color: var(--green); }
+  .stat.bad .value { color: var(--miss); }
+
+  .hist-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start; margin-bottom: 18px; }
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .cal-head h2 { margin: 0; font-size: 18px; font-weight: 800; }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--card);
+    font-size: 20px; line-height: 1; color: var(--text); display: inline-flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:hover:not(:disabled) { background: #FAF8F3; }
+  .icon-btn:disabled { opacity: .35; cursor: default; }
+  .cal-week, .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .cal-week { margin-bottom: 6px; }
+  .cal-week span { text-align: center; font-size: 12.5px; color: var(--sub); font-weight: 600; }
+  .cal-week span:first-child { color: var(--miss); }
+  .cal-day {
+    position: relative; aspect-ratio: 1 / .86; border: 0; border-radius: 12px; background: #FAF8F3;
+    display: flex; flex-direction: column; justify-content: space-between; padding: 7px 8px; text-align: left;
+    color: var(--text); font-size: 14px; font-weight: 600; min-width: 0;
+  }
+  .cal-day:hover { box-shadow: inset 0 0 0 1px #CFC9BA; }
+  .cal-day.blank { background: transparent; pointer-events: none; }
+  .cal-day.future, .cal-day.none { color: #B8B2A7; }
+  .cal-day.lv-full { background: #DDEFE2; }
+  .cal-day.lv-partial { background: #FBE9CF; }
+  .cal-day.lv-most { background: #F8D8D1; }
+  .cal-day.today .num { background: var(--text); color: #fff; border-radius: 99px; padding: 0 6px; }
+  .cal-day.selected { box-shadow: inset 0 0 0 2px var(--green); }
+  .cal-day .bars { display: flex; gap: 2px; }
+  .cal-day .bars i { flex: 1; height: 4px; border-radius: 2px; background: transparent; }
+  .cal-day .bars i.done { background: var(--green); }
+  .cal-day .bars i.missed { background: var(--miss); }
+  .cal-day .bars i.pending { background: #D3CDBF; }
+  .cal-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 14px; font-size: 12.5px; color: var(--sub); }
+  .cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .cal-legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+  .cal-legend i.lv-full { background: #DDEFE2; }
+  .cal-legend i.lv-partial { background: #FBE9CF; }
+  .cal-legend i.lv-most { background: #F8D8D1; }
+  .cal-legend .bars-hint { margin-left: auto; }
+
+  .day-card h2 { margin: 0; font-size: 18px; font-weight: 800; }
+  .day-sum { font-size: 13.5px; color: var(--sub); margin: 2px 0 10px; }
+  .day-slot { padding: 10px 0; border-top: 1px solid var(--line); }
+  .day-slot-head { font-size: 13px; font-weight: 700; color: var(--sub); margin-bottom: 6px; }
+  .day-med { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+  .day-med .nm { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .st { font-size: 12.5px; font-weight: 700; white-space: nowrap; color: var(--sub); }
+  .st.taken { color: var(--green); }
+  .st.missed { color: var(--miss); }
+  .st.overdue, .st.snoozed { color: #B87516; }
+
+  .garden { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .garden-pot { background: #FAF8F3; border-radius: 16px; padding: 14px 10px 12px; text-align: center; position: relative; }
+  .garden-pot.current { background: var(--green-soft); }
+  .garden-pot svg { display: block; margin: 0 auto; }
+  .garden-pot .m { font-weight: 800; margin-top: 4px; }
+  .garden-pot .d { font-size: 12.5px; color: var(--sub); }
+  .garden-pot .tag { position: absolute; top: 10px; right: 10px; font-size: 11px; font-weight: 700; color: var(--green); background: #fff; border-radius: 6px; padding: 2px 6px; }
+
+  /* ── 내 약 카드 ── */
+  .medcard-toolbar { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 14px; flex-wrap: wrap; }
+  .medcard-toolbar #mcBig[aria-pressed="true"] { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+  .medcard { padding: 28px 32px; max-width: 900px; margin-left: auto; margin-right: auto; }
+  .mc-head { display: flex; align-items: center; gap: 14px; padding-bottom: 18px; border-bottom: 2px solid var(--text); }
+  .mc-head svg { flex: none; }
+  .mc-head h2 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+  .mc-head .sub { color: var(--sub); font-size: 14px; margin-top: 2px; }
+  .mc-head .date { margin-left: auto; text-align: right; font-size: 13px; color: var(--sub); white-space: nowrap; }
+  .mc-head .date b { display: block; color: var(--text); font-size: 16px; font-variant-numeric: tabular-nums; }
+  .mc-section { margin: 22px 0 6px; font-size: 14px; font-weight: 800; color: var(--sub); }
+  .mc-row { display: flex; align-items: center; gap: 18px; padding: 16px 0; border-top: 1px solid var(--line); break-inside: avoid; }
+  .mc-section + .mc-row { border-top: 0; }
+  .mc-info { flex: 1; min-width: 0; }
+  .mc-name { font-size: 20px; font-weight: 800; }
+  .mc-name .med-dose { font-size: 16px; margin-left: 4px; }
+  .mc-memo { color: var(--sub); font-size: 14px; margin-top: 2px; }
+  .mc-when { flex: none; width: 230px; text-align: right; }
+  .mc-slots { font-size: 16px; font-weight: 700; color: var(--green); }
+  .mc-period { font-size: 13.5px; color: var(--sub); margin-top: 2px; }
+  .mc-row.paused .mc-slots { color: var(--sub); }
+  .mc-row.paused .med-thumb { filter: grayscale(.6); opacity: .75; }
+  .mc-paused-tag { color: #A86A16; font-weight: 700; }
+  .mc-photo { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: none; }
+  .mc-photo-btns { display: flex; gap: 2px; justify-content: center; }
+  .mc-photo-btns .btn { padding: 3px 6px; font-size: 11.5px; border-radius: 8px; }
+  .mc-foot { margin-top: 20px; padding-top: 14px; border-top: 2px solid var(--text); font-size: 13.5px; color: var(--sub); }
+  .mc-empty { padding: 40px 0; text-align: center; color: var(--sub); }
+
+  /* 큰 글씨 (부모님용) */
+  .medcard.big .mc-head h2 { font-size: 30px; }
+  .medcard.big .mc-head .sub, .medcard.big .mc-head .date { font-size: 17px; }
+  .medcard.big .mc-head .date b { font-size: 20px; }
+  .medcard.big .mc-section { font-size: 18px; }
+  .medcard.big .mc-name { font-size: 28px; }
+  .medcard.big .mc-name .med-dose { font-size: 22px; }
+  .medcard.big .mc-memo { font-size: 18px; }
+  .medcard.big .mc-slots { font-size: 22px; }
+  .medcard.big .mc-period { font-size: 17px; }
+  .medcard.big .mc-foot { font-size: 17px; }
+  .medcard.big .mc-when { width: 290px; }
+
+  /* ── 설정 ── */
+  .prefs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
+  .prefs-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  .pref-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .pref-head .card-title { margin: 0; }
+  .pref-desc { color: var(--sub); font-size: 13.5px; margin: 0 0 16px; }
+  .pref-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+  .switch { position: relative; width: 46px; height: 26px; flex: none; }
+  .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+  .switch span { position: absolute; inset: 0; border-radius: 99px; background: #D8D2C4; transition: background .2s; }
+  .switch span::after {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s;
+  }
+  .switch input:checked + span { background: var(--green); }
+  .switch input:checked + span::after { transform: translateX(20px); }
+  .switch input:focus-visible + span { box-shadow: 0 0 0 3px rgba(61, 139, 89, .25); }
+
+  .email-body.off { opacity: .5; }
+  .mail-preview { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 13.5px; }
+  .mail-preview .mh { padding: 10px 14px; background: #FAF8F3; border-bottom: 1px solid var(--line); }
+  .mail-preview .mh div { color: var(--sub); }
+  .mail-preview .mh b { color: var(--text); font-weight: 600; }
+  .mail-preview .mb { padding: 12px 14px; white-space: pre-line; }
+
+  details.fold { border: 1px solid var(--line); border-radius: 14px; margin-top: 14px; }
+  details.fold summary { padding: 12px 14px; cursor: pointer; font-weight: 700; font-size: 14px; list-style: none; display: flex; justify-content: space-between; }
+  details.fold summary::-webkit-details-marker { display: none; }
+  details.fold summary::after { content: '▾'; color: var(--sub); }
+  details.fold[open] summary::after { content: '▴'; }
+  details.fold .fold-body { padding: 0 14px 14px; }
+  details.fold .field { margin-bottom: 12px; }
+  .code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; background: #F3EFE6; padding: 1px 5px; border-radius: 5px; }
+
+  .mail-log { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; }
+  .mail-log li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .mail-log li:first-child { border-top: 0; }
+  .mail-log .when { color: var(--sub); font-variant-numeric: tabular-nums; flex: none; }
+  .mail-log .what { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mail-log .empty-log { color: var(--sub); justify-content: center; padding: 14px 0; }
+  .sub-title { font-size: 14px; font-weight: 700; margin: 18px 0 0; }
+
+  .time-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .time-field { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #FAF8F3; border-radius: 12px; }
+  .time-field label { flex: 1; font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .time-field .input { width: auto; min-width: 0; padding: 6px 8px; font-variant-numeric: tabular-nums; background: #fff; }
+  @media (max-width: 420px) { .time-grid { grid-template-columns: minmax(0, 1fr); } }
+  .pref-block { padding: 14px 0; border-top: 1px solid var(--line); }
+  .pref-head + .pref-block { border-top: 0; padding-top: 4px; }
+  .pref-block .field-label { margin-bottom: 8px; }
+  .perm-line { font-size: 12.5px; margin-top: 2px; color: var(--sub); }
+  .perm-line.on { color: var(--green); }
+  .perm-line.blocked { color: var(--miss); }
+
+  .video-wrap { position: relative; border-radius: 14px; overflow: hidden; background: #2E3B32; aspect-ratio: 16 / 9; }
+  .video-wrap video { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; }
+  .video-empty {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    background: #EFEBE2; color: var(--sub); text-align: center; padding: 16px;
+  }
+  .video-empty span { font-weight: 700; color: var(--text); }
+  .video-empty small { font-size: 12.5px; }
+
+  .data-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .data-actions .btn { flex: 1; }
+  .btn-outline-danger { background: var(--card); color: var(--miss); border-color: #EBC3BC; }
+  .btn-outline-danger:hover { background: #FDF3F1; }
+  .toast {
+    background: #2E3B32; color: #fff; padding: 12px 18px; border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18); font-weight: 600; font-size: 14.5px;
+    animation: toast-in .25s ease;
+  }
+  .toast.out { opacity: 0; transform: translateY(-6px); transition: opacity .3s, transform .3s; }
+  @keyframes toast-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+  @media (max-width: 1000px) {
+    .hist-grid { grid-template-columns: minmax(0, 1fr); }
+    .stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .prefs-grid { grid-template-columns: minmax(0, 1fr); }
+    .today-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 760px) {
+    .today-head h1 { font-size: 22px; }
+    .now-head, .dose-list, .now-foot, .now-empty { padding-left: 16px; padding-right: 16px; }
+    .dose { flex-wrap: wrap; gap: 12px; }
+    .dose-info { flex-basis: calc(100% - 76px); }
+    .dose-actions { width: 100%; }
+    .dose-actions > * { flex: 1; }
+    .dose-actions .btn { width: 100%; padding-left: 8px; padding-right: 8px; }
+    .now-foot .btn { width: 100%; }
+    .corner { top: 12px; right: 12px; left: 12px; width: auto; max-width: none; align-items: stretch; }
+    .toasts { align-items: center; }
+    .alerts .alert:nth-child(n+3) { display: none; }
+    .cal-week, .cal-grid { gap: 4px; }
+    .cal-day { padding: 4px 5px; font-size: 12.5px; border-radius: 9px; }
+    .cal-day .bars { gap: 1px; }
+    .cal-day .bars i { height: 3px; }
+    .cal-legend .bars-hint { margin-left: 0; }
+    .garden { gap: 8px; }
+    .garden-pot { padding: 12px 4px 10px; }
+    .garden-pot .tag { display: none; }
+    .stat { padding: 14px; }
+    .stat .value { font-size: 22px; }
+  }
+
+  /* ── 안내문 ── */
+  .notice {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 16px; margin-bottom: 18px;
+    background: #FFFDF7; border: 1px solid var(--line); border-radius: 14px;
+    color: var(--sub); font-size: 13.5px;
+  }
+  .notice svg { width: 18px; height: 18px; flex: none; margin-top: 2px; color: var(--green); }
+
+  /* ── 내 약 ── */
+  .meds-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+
+  .seg { display: inline-flex; padding: 4px; background: #ECE8DE; border-radius: 12px; gap: 2px; }
+  .seg button {
+    border: 0; background: transparent; padding: 7px 14px; border-radius: 9px;
+    color: var(--sub); font-weight: 600; font-size: 14px; white-space: nowrap;
+  }
+  .seg button.active { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .seg .n { margin-left: 4px; font-weight: 700; color: var(--green); }
+  .seg button:not(.active) .n { color: inherit; opacity: .7; }
+
+  .med-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+
+  .med-card { display: flex; flex-direction: column; gap: 14px; padding: 20px; }
+  .med-card.dim .med-thumb, .med-card.dim .med-name { opacity: .6; }
+  .med-top { display: flex; gap: 14px; align-items: flex-start; }
+  .med-info { flex: 1; min-width: 0; }
+  .med-name { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .med-dose { color: var(--sub); font-weight: 500; font-size: 14px; }
+  .med-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .med-period { margin-top: 8px; font-size: 13.5px; color: var(--sub); }
+  .med-period b { color: var(--text); font-weight: 600; }
+  .med-memo {
+    font-size: 13.5px; color: var(--text); background: #F8F6F0;
+    padding: 9px 12px; border-radius: 10px;
+  }
+  .med-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
+  .med-actions .btn-text-danger { margin-left: auto; }
+
+  .med-thumb {
+    flex: none; border-radius: 14px; overflow: hidden; background: #ECE6DA;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .med-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .empty { grid-column: 1 / -1; text-align: center; color: var(--sub); padding: 48px 24px; }
+
+  /* ── 모달 ── */
+  .modal-root:empty { display: none; }
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(40, 36, 28, .38);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+    animation: fade .15s ease;
+  }
+  .modal {
+    width: 100%; max-width: 520px; max-height: calc(100vh - 48px);
+    display: flex; flex-direction: column;
+    background: var(--card); border-radius: 22px; box-shadow: 0 20px 60px rgba(0,0,0,.18);
+  }
+  .modal-sm { max-width: 400px; }
+  .modal-head { padding: 22px 24px 4px; }
+  .modal-head h2 { margin: 0; font-size: 19px; font-weight: 800; }
+  .modal-body { padding: 14px 24px; overflow-y: auto; }
+  .modal-body p { margin: 0; color: var(--sub); }
+  .modal-foot { padding: 14px 24px 22px; display: flex; justify-content: flex-end; gap: 8px; }
+
+  .field { margin-bottom: 18px; }
+  .field > label, .field-label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+  .field .req { color: var(--miss); margin-left: 2px; }
+  .field-hint { font-size: 12.5px; color: var(--sub); margin-top: 6px; }
+  .field-error { font-size: 12.5px; color: var(--miss); margin-top: 6px; font-weight: 600; }
+  .field-error:empty { display: none; }
+
+  .input {
+    width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: #FDFCF9;
+    font: inherit; color: var(--text);
+  }
+  .input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(61, 139, 89, .15); background: #fff; }
+  .input.invalid { border-color: var(--miss); }
+  textarea.input { resize: vertical; min-height: 64px; }
+
+  .photo-pick { display: flex; gap: 16px; align-items: center; }
+  .photo-pick .med-thumb { border: 1px dashed #D8D2C4; }
+  .photo-pick-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .photo-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+  .shape-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .shape-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px 7px;
+    border-radius: 12px; border: 1px solid var(--line); background: #FDFCF9; font-size: 12px; color: var(--sub); white-space: nowrap;
+  }
+  .shape-chip .ic { width: 34px; height: 34px; display: block; }
+  .shape-chip .ic img { width: 100%; height: 100%; display: block; border-radius: 8px; }
+  .shape-chip.active { border-color: var(--green); background: var(--green-soft); color: var(--green); font-weight: 700; box-shadow: 0 0 0 1px var(--green); }
+  .dose-pick { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; background: #FDFCF9; overflow: hidden; flex: none; }
+  .stepper button { width: 38px; height: 38px; border: 0; background: transparent; font-size: 18px; color: var(--text); }
+  .stepper button:hover { background: var(--green-soft); color: var(--green); }
+  .stepper input { width: 44px; height: 38px; border: 0; border-left: 1px solid var(--line); border-right: 1px solid var(--line); text-align: center; font: inherit; font-weight: 700; background: #fff; }
+  .stepper input:focus { outline: none; background: var(--green-soft); }
+  .stepper.off { opacity: .4; pointer-events: none; }
+  @media (max-width: 480px) {
+    .photo-pick #fThumb { display: none; }
+    .photo-pick-side { width: 100%; }
+  }
+  .swatch {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--line); padding: 0;
+  }
+  .swatch.active { box-shadow: 0 0 0 2px var(--green); }
+
+  .pick-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pick-chip {
+    padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line);
+    background: #FDFCF9; color: var(--text); font-size: 14px; font-weight: 500; white-space: nowrap;
+  }
+  .pick-chip .t { color: var(--sub); font-size: 12.5px; margin-left: 4px; }
+  .pick-chip.active { background: var(--green); border-color: var(--green); color: #fff; font-weight: 700; }
+  .pick-chip.active .t { color: rgba(255,255,255,.85); }
+  .pick-chips.invalid .pick-chip { border-color: var(--miss); }
+
+  .date-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .date-row .sub { font-size: 12.5px; color: var(--sub); margin-bottom: 4px; }
+  .quick-days { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+  @media (max-width: 760px) {
+    .meds-toolbar { flex-wrap: wrap; }
+    .seg { width: 100%; }
+    .seg button { flex: 1; padding: 7px 6px; }
+    #addMedBtn { width: 100%; }
+    .med-list { grid-template-columns: minmax(0, 1fr); }
+
+    .modal-backdrop { align-items: flex-end; padding: 0; }
+    .modal { max-width: none; max-height: 92vh; border-radius: 22px 22px 0 0; }
+    .modal-sm { border-radius: 22px 22px 0 0; }
+    .modal-foot { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+    .modal-foot .btn { flex: 1; }
+  }
+  @media (max-width: 760px) {
+    .medcard { padding: 20px 16px; }
+    .mc-head { flex-wrap: wrap; }
+    .mc-head .date { margin-left: 0; text-align: left; width: 100%; }
+    .mc-head .date b { display: inline; margin-right: 4px; }
+    .mc-row { flex-wrap: wrap; gap: 12px 14px; }
+    .mc-info { flex-basis: calc(100% - 110px); }
+    .mc-when, .medcard.big .mc-when { width: 100%; text-align: left; padding-left: 0; }
+    .medcard-toolbar .btn { flex: 1; }
+  }
+
+  /* ── 인쇄: 내 약 카드만 ── */
+  @media print {
+    @page { margin: 14mm; }
+    body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sidebar, .tabbar, .mobile-brand, .corner, .modal-root, .medcard-toolbar, .medcard-notice, .mc-photo-btns, .screen-head { display: none !important; }
+    .main { margin: 0; padding: 0; max-width: none; }
+    .screen { display: none !important; }
+    #screen-card { display: block !important; animation: none; }
+    .medcard { box-shadow: none; padding: 0; max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 아이콘 모음 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-today" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>
+    </symbol>
+    <symbol id="i-meds" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.5" y="8.5" width="17" height="7" rx="3.5" transform="rotate(-35 12 12)"/><path d="M9.3 8.2l5.4 7.6"/>
+    </symbol>
+    <symbol id="i-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>
+    </symbol>
+    <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="5.5" width="18" height="13" rx="2.5"/><circle cx="8.5" cy="11" r="2"/><path d="M5.5 16c.6-1.5 1.7-2.2 3-2.2s2.4.7 3 2.2M14 10h4M14 13.5h3"/>
+    </symbol>
+    <symbol id="i-prefs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>
+    </symbol>
+    <!-- 로고: 화분에서 자라는 새싹 -->
+    <symbol id="logo" viewBox="0 0 40 40">
+      <path d="M20 22V13" stroke="#3D8B59" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+      <path d="M20 15c-1-4.5-4.6-6.6-8.5-6 .3 4.2 3.6 6.8 8.5 6z" fill="#5FA877"/>
+      <path d="M20 13.5c.8-4.8 4.4-7.4 8.8-7-.2 4.6-3.8 7.4-8.8 7z" fill="#3D8B59"/>
+      <path d="M9.5 21.5h21l-2.3 12.2a2.5 2.5 0 0 1-2.5 2H14.3a2.5 2.5 0 0 1-2.5-2z" fill="#D27A4F"/>
+      <rect x="8" y="20" width="24" height="4.2" rx="2" fill="#E08D5F"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand home-link" href="#today" aria-label="약싹 — 오늘 화면으로">
+      <svg width="40" height="40"><use href="#logo"/></svg>
+      <div>
+        <div class="brand-name">약싹</div>
+        <div class="brand-slogan">챙길수록 자라는 복약 습관</div>
+      </div>
+    </a>
+    <nav class="nav" id="sideNav"></nav>
+  </aside>
+
+  <main class="main">
+    <a class="mobile-brand home-link" href="#today" aria-label="약싹 — 오늘 화면으로">
+      <svg width="30" height="30"><use href="#logo"/></svg>
+      <span class="brand-name">약싹</span>
+    </a>
+
+    <section class="screen" id="screen-today">
+      <div class="screen-head today-head">
+        <h1 id="todayDate">오늘</h1>
+        <p id="todayProgressText"></p>
+        <div class="progress"><div class="progress-bar" id="todayProgressBar"></div></div>
+      </div>
+      <div class="today-grid">
+        <div class="today-main">
+          <div class="card now-card" id="nowCard"></div>
+          <div class="card slot-card">
+            <h2 class="card-title">오늘의 시간대</h2>
+            <ul class="slot-list" id="todaySlots"></ul>
+          </div>
+        </div>
+        <aside class="today-side">
+          <div class="card side-card plant-card" id="plantCard">
+            <div id="plantBody"></div>
+          </div>
+          <div class="card side-card" id="alertCard">
+            <h2 class="card-title">알림 상태</h2>
+            <div id="alertStatus"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-meds">
+      <div class="screen-head">
+        <h1>내 약</h1>
+        <p>먹고 있는 약을 아이콘으로 구분하고 관리해요.</p>
+      </div>
+      <div class="notice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/></svg>
+        <span>약싹은 의사·약사가 안내한 복용법대로 시간을 배치하고 알려 주기만 해요. 복용 방법은 의사·약사의 안내를 따르세요.</span>
+      </div>
+      <div class="meds-toolbar">
+        <div class="seg" id="medsTabs" role="tablist"></div>
+        <button class="btn btn-primary" id="addMedBtn">+ 약 추가</button>
+      </div>
+      <div class="med-list" id="medList"></div>
+    </section>
+
+    <section class="screen" id="screen-history">
+      <div class="screen-head">
+        <h1>기록</h1>
+        <p>달력으로 복용 기록을 보고, 함께 자라는 식물을 확인해요.</p>
+      </div>
+      <div class="stat-row" id="histStats"></div>
+      <div class="hist-grid">
+        <div class="card cal-card">
+          <div class="cal-head">
+            <button class="icon-btn" id="calPrev" aria-label="이전 달">‹</button>
+            <h2 id="calTitle"></h2>
+            <button class="icon-btn" id="calNext" aria-label="다음 달">›</button>
+          </div>
+          <div class="cal-week"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-legend">
+            <span><i class="lv-full"></i>모두 챙김</span>
+            <span><i class="lv-partial"></i>일부 놓침</span>
+            <span><i class="lv-most"></i>대부분 놓침</span>
+            <span class="bars-hint">칸 아래 막대: 아침·점심·저녁·자기 전</span>
+          </div>
+        </div>
+        <div class="card day-card" id="dayDetail"></div>
+      </div>
+      <div class="card garden-card">
+        <h2 class="card-title">내 정원</h2>
+        <p class="pref-desc">달마다 다른 꽃을 키워요. 그 달에 도달한 모습 그대로 정원에 남아요.</p>
+        <div class="garden" id="garden"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-card">
+      <div class="screen-head">
+        <h1>내 약 카드</h1>
+        <p>병원·약국에서 보여 줄 수 있게 먹는 약을 한 장으로 정리해요.</p>
+      </div>
+      <div class="notice medcard-notice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8.5 6l1.5-2h4l1.5 2"/></svg>
+        <span>약 아래 [사진 올리기]로 실제 약이나 약봉투 사진을 붙여 두세요. 병원·약국에서 보여 주기 좋고, 알림과 오늘 화면에도 사진이 함께 떠요.</span>
+      </div>
+      <input type="file" accept="image/*" id="mcPhotoInput" hidden>
+      <div class="medcard-toolbar">
+        <button class="btn btn-ghost" id="mcBig" aria-pressed="false">큰 글씨</button>
+        <button class="btn btn-ghost" id="mcCopy">글로 복사</button>
+        <button class="btn btn-primary" id="mcPrint">인쇄</button>
+      </div>
+      <article class="card medcard" id="medCard"></article>
+    </section>
+
+    <section class="screen" id="screen-prefs">
+      <div class="screen-head">
+        <h1>설정</h1>
+        <p>복용 시각과 알림 방법을 내 생활에 맞게 바꿔요.</p>
+      </div>
+      <div class="prefs-grid">
+        <div class="prefs-col">
+          <div class="card" id="slotTimesCard"></div>
+          <div class="card" id="pcAlertCard"></div>
+          <div class="card" id="videoCard">
+            <h2 class="card-title">사용 안내 영상</h2>
+            <p class="pref-desc">약 등록부터 체크까지 30초 안에 보여 드려요.</p>
+            <div class="video-wrap">
+              <video id="guideVideo" controls preload="metadata" playsinline>
+                <source src="guide.mp4" type="video/mp4">
+              </video>
+              <div class="video-empty" id="videoEmpty">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>
+                <span>영상 준비 중이에요</span>
+                <small><span class="code">guide.mp4</span> 파일을 index.html과 같은 폴더에 넣으면 여기서 재생돼요.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="prefs-col">
+          <div class="card" id="emailCard"></div>
+          <div class="card" id="dataCard"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" id="tabBar"></nav>
+</div>
+
+<div class="modal-root" id="modalRoot"></div>
+<div class="corner">
+  <div class="alerts" id="alerts" aria-live="assertive"></div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</div>
+
+<script>
+  /* ════════════════════════════════════════
+     데이터 (PRD 6장 데이터 모델)
+     ════════════════════════════════════════ */
+
+  const STORAGE_KEY = 'yaksak.v1';
+
+  const SLOTS = [
+    { id: 'morning', label: '아침' },
+    { id: 'lunch',   label: '점심' },
+    { id: 'dinner',  label: '저녁' },
+    { id: 'bedtime', label: '자기 전' },
+  ];
+
+  // 사진이 없을 때 쓰는 약 아이콘: 모양 4가지 × 색상 8가지
+  const MED_COLORS = ['#FFFDF7', '#F2C94C', '#F6AE5C', '#F4A3B4', '#9CC5A1', '#8AB4F8', '#C3A6E8', '#A8A196'];
+  // 예전 색상 값 → 새 값 (저장된 약 이전용)
+  const COLOR_RENAMES = { '#F5F1E6': '#FFFDF7', '#B8B2A7': '#A8A196' };
+  const MED_SHAPES = [
+    { id: 'tablet',  label: '알약',   unit: '정' },
+    { id: 'capsule', label: '캡슐',   unit: '캡슐' },
+    { id: 'sachet',  label: '약봉투', unit: '포' },
+    { id: 'stick',   label: '스틱 포', unit: '포' },
+  ];
+  const DOSE_UNITS = ['정', '캡슐', '포', '알', 'mL'];
+
+  function defaultSettings() {
+    return {
+      slotTimes: { morning: '08:00', lunch: '12:30', dinner: '18:30', bedtime: '22:30' },
+      remindAfterMin: 30,   // 미체크 시 재알림
+      missAfterMin: 120,    // 놓침 판정
+      notifyEnabled: true,  // 브라우저 알림
+      cardBig: false,       // 내 약 카드 큰 글씨
+      email: {
+        enabled: false,
+        address: '',
+        sendAfterMin: 60,
+        serviceId: '',
+        templateId: '',
+        publicKey: '',
+      },
+    };
+  }
+
+  /*
+    state = {
+      version, seededAt,
+      meds: [{ id, name, dose, photo(dataURL|null), color, memo, slots[], startDate, endDate(null=계속), paused, pausedDate }],
+      logs: { 'YYYY-MM-DD': { slotId: { medId: { status: 'taken'|'skipped'|'snoozed', at(ms), snoozeUntil(ms) } } } },
+      settings,
+      emailLog: [],  // 이메일 발송 기록 (최근 30개)
+      sent: {},      // 보낸 알림 기록 (중복 방지)
+    }
+    '놓침'·'예정'·'지금' 등은 저장하지 않고 계산한다.
+  */
+
+  /* ── 날짜 도우미 (모두 로컬 날짜 'YYYY-MM-DD') ── */
+  const pad2 = n => String(n).padStart(2, '0');
+  function dateKey(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+  function parseDate(key) { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d); }
+  function addDays(key, n) { const d = parseDate(key); d.setDate(d.getDate() + n); return dateKey(d); }
+  function todayKey() { return dateKey(new Date()); }
+
+  // 특정 날짜·슬롯의 예정 시각(ms)
+  function slotTime(key, slotId, settings = state.settings) {
+    const [h, m] = settings.slotTimes[slotId].split(':').map(Number);
+    const d = parseDate(key);
+    d.setHours(h, m, 0, 0);
+    return d.getTime();
+  }
+
+  // 그날 먹어야 하는 약인지 (시작일 전·종료일 뒤·일시 중단일 이후 제외)
+  function isActiveOn(med, key) {
+    if (med.startDate && key < med.startDate) return false;
+    if (med.endDate && key > med.endDate) return false;
+    if (med.paused && med.pausedDate && key >= med.pausedDate) return false;
+    return true;
+  }
+
+  /* ── 저장소: localStorage, 안 되면 메모리 ── */
+  const storage = (() => {
+    let memory = null;
+    let ok = true;
+    try {
+      const t = '__yaksak_test__';
+      localStorage.setItem(t, t);
+      localStorage.removeItem(t);
+    } catch (e) {
+      ok = false;
+    }
+    return {
+      get available() { return ok; },
+      load() {
+        if (!ok) return memory;
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+          return memory;
+        }
+      },
+      save(data) {
+        memory = data;
+        if (!ok) return;
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+          // 용량 초과 등 — 이번 세션은 메모리로 계속 동작
+          ok = false;
+          console.warn('[약싹] localStorage에 저장하지 못해 메모리로 동작해요.', e);
+        }
+      },
+    };
+  })();
+
+  let state = null;
+
+  function save() { storage.save(state); }
+
+  /* ── 기록 읽기·쓰기 ── */
+  function getLog(key, slotId, medId) {
+    return state.logs[key]?.[slotId]?.[medId] || null;
+  }
+
+  function setLog(key, slotId, medId, entry) {
+    const day = state.logs[key] ||= {};
+    const slot = day[slotId] ||= {};
+    if (entry) slot[medId] = entry;
+    else {
+      delete slot[medId];
+      if (!Object.keys(slot).length) delete day[slotId];
+      if (!Object.keys(day).length) delete state.logs[key];
+    }
+    save();
+  }
+
+  /* ════════════════════════════════════════
+     시간대 슬롯 계산 (F2)
+     ════════════════════════════════════════ */
+
+  // 특정 날짜에 먹을 약을 슬롯별로: [{ slot, label, time('HH:MM'), at(ms), meds[] }]
+  // 시작일 전·종료일 뒤·일시 중단일 이후 약은 빠지고, 약이 없는 슬롯도 빠진다.
+  function slotsForDate(key) {
+    return SLOTS.map(s => ({
+      slot: s.id,
+      label: s.label,
+      time: state.settings.slotTimes[s.id],
+      at: slotTime(key, s.id),
+      meds: state.meds.filter(m => m.slots.includes(s.id) && isActiveOn(m, key)),
+    })).filter(s => s.meds.length);
+  }
+
+  /*
+    약 하나의 상태 (저장된 것은 taken·skipped·snoozed뿐, 나머지는 계산)
+      taken    먹음
+      skipped  건너뜀
+      snoozed  미룸 (미룬 시각 전)
+      upcoming 예정 (시각 전)
+      now      지금 (시각 ~ 재알림 전)
+      overdue  체크 전 (재알림 시간 지남 ~ 놓침 전)
+      missed   놓침 (놓침 판정 시간 지남)
+    미룬 약은 미룬 시각을 기준으로 다시 계산한다.
+  */
+  function doseStatus(key, slotId, medId, now = Date.now()) {
+    const log = getLog(key, slotId, medId);
+    if (log?.status === 'taken' || log?.status === 'skipped') return log.status;
+
+    let base = slotTime(key, slotId);
+    if (log?.status === 'snoozed' && log.snoozeUntil) {
+      if (now < log.snoozeUntil) return 'snoozed';
+      base = log.snoozeUntil;
+    }
+    const { remindAfterMin, missAfterMin } = state.settings;
+    if (now < base) return 'upcoming';
+    if (now - base >= missAfterMin * 60000) return 'missed';
+    if (now - base >= remindAfterMin * 60000) return 'overdue';
+    return 'now';
+  }
+
+  // 기록이 없고 놓침 판정 시간이 지났으면 '놓침' (저장하지 않고 계산)
+  function isMissed(key, slotId, medId, now = Date.now()) {
+    return doseStatus(key, slotId, medId, now) === 'missed';
+  }
+
+  // 슬롯 하나의 요약: 놓침 > 체크 전 > 지금 > 미룸 > 예정 > 완료 순으로 대표 상태를 고른다
+  function slotSummary(key, slot, now = Date.now()) {
+    const statuses = slot.meds.map(m => doseStatus(key, slot.slot, m.id, now));
+    const count = st => statuses.filter(x => x === st).length;
+    const done = count('taken') + count('skipped');
+    let status;
+    if (count('missed')) status = 'missed';
+    else if (count('overdue')) status = 'overdue';
+    else if (count('now')) status = 'now';
+    else if (count('snoozed')) status = 'snoozed';
+    else if (count('upcoming')) status = 'upcoming';
+    else status = 'done';
+    return { status, statuses, total: statuses.length, done, missed: count('missed'), pending: statuses.length - done };
+  }
+
+  /* ════════════════════════════════════════
+     예시 데이터
+     ════════════════════════════════════════ */
+
+  // 고정 시드 난수 (mulberry32) — 항상 같은 결과
+  function seededRandom(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  const svgURL = svg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+
+  // 색 섞기: t=0이면 a, t=1이면 b
+  function mixColor(a, b, t) {
+    const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+    const [x, y] = [p(a), p(b)];
+    return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join('');
+  }
+
+  // 약 아이콘 그림 (사진이 없을 때): 알약·캡슐·약봉투·스틱 포
+  // 밝기(0~1): 밝은 색은 윤곽을 더 진하게 그려 배경과 구분
+  function luminance(hex) {
+    const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+
+  function medArtSVG(shape, color) {
+    const c = /^#[0-9a-f]{6}$/i.test(color) ? color : MED_COLORS[0];
+    const INK = '#3A3328';                 // 따뜻한 짙은 갈색 (검정 대신)
+    const lum = luminance(c);
+    const isLight = lum > .82;
+    const line = mixColor(c, INK, isLight ? .5 : lum > .62 ? .42 : .34);   // 윤곽선
+    const deep = mixColor(c, INK, isLight ? .2 : .4);                       // 캡슐 반쪽·포 띠
+    const accent = isLight ? mixColor(c, INK, .14) : c;                     // 흰색일 때 띠·점
+    const body = isLight ? '#FFFFFF' : mixColor(c, '#FFFFFF', .55);         // 스틱 몸통
+    const shadow = 'rgba(70,52,30,.13)';
+    const bg = `<rect width="120" height="120" rx="24" fill="#ECE6DA"/>
+      <rect x="1" y="1" width="118" height="118" rx="23" fill="none" stroke="#E2DACB" stroke-width="2"/>`;
+    let art;
+    if (shape === 'tablet') {
+      art = `<ellipse cx="62" cy="68" rx="34" ry="30" fill="${shadow}"/>
+        <circle cx="60" cy="60" r="32" fill="${c}" stroke="${line}" stroke-width="3.2"/>
+        <path d="M36 60h48" stroke="${line}" stroke-width="3.5" stroke-linecap="round"/>
+        <ellipse cx="48" cy="46" rx="9" ry="5" fill="#fff" opacity="${isLight ? .9 : .55}"/>`;
+    } else if (shape === 'sachet') {
+      art = `<rect x="27" y="23" width="70" height="80" rx="6" fill="${shadow}"/>
+        <rect x="24" y="20" width="70" height="80" rx="6" fill="#FFFFFF" stroke="${line}" stroke-width="2.6"/>
+        <path d="M24 32 V26 a6 6 0 0 1 6 -6 h58 a6 6 0 0 1 6 6 V32z" fill="${accent}"/>
+        <path d="M24 32h70" stroke="${line}" stroke-width="2" stroke-dasharray="4 3"/>
+        <circle cx="46" cy="66" r="9" fill="${accent}" stroke="${line}" stroke-width="1.5"/>
+        <circle cx="68" cy="62" r="7" fill="${deep}"/>
+        <circle cx="62" cy="80" r="6" fill="${accent}" stroke="${line}" stroke-width="1.2"/>
+        <path d="M36 90h46" stroke="#D8D0C0" stroke-width="3" stroke-linecap="round"/>`;
+    } else if (shape === 'stick') {
+      art = `<g transform="rotate(-32 60 60)">
+          <rect x="49" y="13" width="28" height="98" rx="5" fill="${shadow}"/>
+          <rect x="45" y="9" width="30" height="100" rx="5" fill="${body}" stroke="${line}" stroke-width="2.4"/>
+          <path d="M46.2 26 V14 a4.8 4.8 0 0 1 4.8 -4.8 h18 a4.8 4.8 0 0 1 4.8 4.8 V26z" fill="${accent}"/>
+          <path d="M45 26h30" stroke="${line}" stroke-width="1.6" stroke-dasharray="3 2.5"/>
+          <path d="M46.2 98 V103 a4.8 4.8 0 0 0 4.8 4.8 h18 a4.8 4.8 0 0 0 4.8 -4.8 V98z" fill="${accent}"/>
+          <rect x="51" y="44" width="18" height="30" rx="3" fill="#fff" stroke="${isLight ? line : 'none'}" stroke-width="1" opacity=".9"/>
+          <path d="M54 52h12M54 58h12M54 64h8" stroke="${line}" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        </g>`;
+    } else { // capsule
+      art = `<g transform="rotate(-35 60 60)">
+          <rect x="18" y="44" width="88" height="36" rx="18" fill="${shadow}"/>
+          <path d="M60 40H34a20 20 0 0 0 0 40h26z" fill="${c}"/>
+          <path d="M60 40h26a20 20 0 0 1 0 40H60z" fill="${deep}"/>
+          <rect x="14" y="40" width="92" height="40" rx="20" fill="none" stroke="${line}" stroke-width="2.6"/>
+          <path d="M60 40v40" stroke="${line}" stroke-width="2"/>
+          <rect x="26" y="47" width="26" height="6" rx="3" fill="#fff" opacity="${isLight ? .9 : .5}"/>
+        </g>`;
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">${bg}${art}</svg>`;
+  }
+
+  const artCache = new Map();
+  function medArtURL(med) {
+    const k = `${med.shape || 'capsule'}|${med.color}`;
+    if (!artCache.has(k)) artCache.set(k, svgURL(medArtSVG(med.shape || 'capsule', med.color)));
+    return artCache.get(k);
+  }
+
+  // 예시 약의 모양·색상 (예전에 저장된 예시 데이터를 새 아이콘으로 바꿀 때도 사용)
+  const SAMPLE_LOOKS = {
+    'm-rx-a':       { shape: 'tablet',  color: '#FFFDF7' },
+    'm-rx-b':       { shape: 'capsule', color: '#F2C94C' },
+    'm-rx-c':       { shape: 'tablet',  color: '#F4A3B4' },
+    'm-antibiotic': { shape: 'sachet',  color: '#8AB4F8' },
+    'm-cold':      { shape: 'sachet',  color: '#F6AE5C' },
+    'm-probiotic': { shape: 'stick',   color: '#9CC5A1' },
+  };
+
+  function buildSampleState() {
+    const today = todayKey();
+    const settings = defaultSettings();
+
+    const meds = [
+      { id: 'm-rx-a', name: '처방약 A', dose: '1정', photo: null, ...SAMPLE_LOOKS['m-rx-a'],
+        memo: '아침 식사 직후', slots: ['morning'], startDate: addDays(today, -75), endDate: null, paused: false, pausedDate: null },
+      { id: 'm-rx-b', name: '처방약 B', dose: '1캡슐', photo: null, ...SAMPLE_LOOKS['m-rx-b'],
+        memo: '식후 30분', slots: ['morning', 'lunch', 'dinner'], startDate: addDays(today, -75), endDate: null, paused: false, pausedDate: null },
+      { id: 'm-rx-c', name: '처방약 C', dose: '1정', photo: null, ...SAMPLE_LOOKS['m-rx-c'],
+        memo: '의사 지시로 잠시 중단', slots: ['morning'], startDate: addDays(today, -60), endDate: null, paused: true, pausedDate: addDays(today, -3) },
+      { id: 'm-antibiotic', name: '항생제', dose: '1포', photo: null, ...SAMPLE_LOOKS['m-antibiotic'],
+        memo: '7일치 · 물 많이 마시기', slots: ['morning', 'dinner'], startDate: addDays(today, -3), endDate: addDays(today, -3 + 6), paused: false, pausedDate: null },
+      { id: 'm-cold', name: '감기약', dose: '1포', photo: null, ...SAMPLE_LOOKS['m-cold'],
+        memo: '식후 30분', slots: ['morning', 'lunch', 'dinner'], startDate: addDays(today, -14), endDate: addDays(today, -14 + 4), paused: false, pausedDate: null },
+      { id: 'm-probiotic', name: '유산균', dose: '1포', photo: null, ...SAMPLE_LOOKS['m-probiotic'],
+        memo: '자기 전 물과 함께', slots: ['bedtime'], startDate: addDays(today, -75), endDate: null, paused: false, pausedDate: null },
+    ];
+
+    // 지난 75일 기록: 점심은 약 16%, 다른 시간대는 약 3~4% 놓침
+    const MISS_RATE = { morning: 0.035, lunch: 0.16, dinner: 0.04, bedtime: 0.03 };
+    const rand = seededRandom(20261804);
+    const logs = {};
+
+    for (let back = 75; back >= 1; back--) {
+      const key = addDays(today, -back);
+      for (const slot of SLOTS) {
+        // 약 활성 여부와 관계없이 같은 순서로 난수를 뽑아 결과를 고정
+        const missed = rand() < MISS_RATE[slot.id];
+        const delayMin = Math.floor(rand() * 30) - 5; // -5 ~ +24분
+        if (missed) continue;
+
+        const meds_ = meds.filter(m => m.slots.includes(slot.id) && isActiveOn(m, key));
+        if (!meds_.length) continue;
+
+        const at = slotTime(key, slot.id, settings) + delayMin * 60000;
+        logs[key] ||= {};
+        logs[key][slot.id] = {};
+        for (const m of meds_) logs[key][slot.id][m.id] = { status: 'taken', at };
+      }
+    }
+
+    return {
+      version: 1,
+      seededAt: Date.now(),
+      meds,
+      logs,
+      settings,
+      emailLog: [],
+      sent: {},
+    };
+  }
+
+  function loadState() {
+    const saved = storage.load();
+    if (saved && saved.version === 1) {
+      // 나중에 추가되는 설정 항목도 기본값으로 채움
+      const def = defaultSettings();
+      saved.settings = { ...def, ...saved.settings,
+        slotTimes: { ...def.slotTimes, ...saved.settings?.slotTimes },
+        email: { ...def.email, ...saved.settings?.email } };
+      for (const m of saved.meds || []) {
+        if (COLOR_RENAMES[m.color]) m.color = COLOR_RENAMES[m.color];
+        if (m.shape) continue;
+        const look = SAMPLE_LOOKS[m.id];
+        if (m.photo?.startsWith('data:image/svg+xml')) { // 예전 예시 일러스트는 사진이 아님
+          m.photo = null;
+          if (look) Object.assign(m, look);
+          if (m.id === 'm-probiotic') m.dose = '1포';
+        }
+        m.shape ||= 'capsule';
+      }
+      saved.logs ||= {};
+      saved.emailLog ||= [];
+      saved.sent ||= {};
+      return saved;
+    }
+    return null;
+  }
+
+  function resetToSample() {
+    state = buildSampleState();
+    save();
+  }
+
+  // 모두 지우기: 약·기록·발송 기록을 비우고 설정도 처음 값으로
+  function resetToEmpty() {
+    state = { version: 1, seededAt: Date.now(), meds: [], logs: {}, settings: defaultSettings(), emailLog: [], sent: {} };
+    save();
+  }
+
+  state = loadState();
+  if (!state) resetToSample();
+
+  // 개발자 도구 콘솔에서 확인용
+  window.yaksak = { get state() { return state; }, storage, isActiveOn, isMissed, slotsForDate, doseStatus, resetToSample, get plantSVG() { return plantSVG; } };
+
+  /* ════════════════════════════════════════
+     공통 도우미
+     ════════════════════════════════════════ */
+
+  const $ = (sel, root = document) => root.querySelector(sel);
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  const slotLabel = id => SLOTS.find(s => s.id === id)?.label || id;
+  const md = key => { const d = parseDate(key); return `${d.getMonth() + 1}/${d.getDate()}`; };
+  const daysBetween = (a, b) => Math.round((parseDate(b) - parseDate(a)) / 86400000);
+
+  // 약 썸네일: 내 약 카드에서 올린 사진이 있으면 사진, 없으면 고른 모양·색상의 아이콘
+  function medThumb(med, size = 64) {
+    return `<div class="med-thumb" style="width:${size}px;height:${size}px"><img src="${esc(med.photo || medArtURL(med))}" alt=""></div>`;
+  }
+
+  /* ── 모달 ── */
+  const modalRoot = $('#modalRoot');
+  let modalCleanup = null;
+
+  function openModal(html, { size = '', onClose, closeOnBackdrop = true } = {}) {
+    closeModal();
+    modalRoot.innerHTML = `<div class="modal-backdrop"><div class="modal ${size}" role="dialog" aria-modal="true">${html}</div></div>`;
+    const backdrop = modalRoot.firstElementChild;
+    if (closeOnBackdrop) backdrop.addEventListener('mousedown', e => { if (e.target === backdrop) closeModal(); });
+    const onKey = e => { if (e.key === 'Escape') closeModal(); };
+    document.addEventListener('keydown', onKey);
+    modalCleanup = () => { document.removeEventListener('keydown', onKey); onClose?.(); };
+    return backdrop.firstElementChild;
+  }
+
+  function closeModal() {
+    if (!modalRoot.innerHTML) return;
+    const cleanup = modalCleanup;
+    modalCleanup = null;
+    modalRoot.innerHTML = '';
+    cleanup?.();
+  }
+
+  // confirm() 대신 쓰는 화면 안 확인 모달
+  function confirmModal({ title, message, confirmLabel = '확인', danger = false }) {
+    return new Promise(resolve => {
+      let answered = false;
+      const el = openModal(`
+        <div class="modal-head"><h2>${esc(title)}</h2></div>
+        <div class="modal-body"><p>${message}</p></div>
+        <div class="modal-foot">
+          <button class="btn btn-ghost" data-act="cancel">취소</button>
+          <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-act="ok">${esc(confirmLabel)}</button>
+        </div>`, { size: 'modal-sm', onClose: () => { if (!answered) resolve(false); } });
+      el.addEventListener('click', e => {
+        const act = e.target.closest('[data-act]')?.dataset.act;
+        if (!act) return;
+        answered = true;
+        resolve(act === 'ok');
+        closeModal();
+      });
+      $('[data-act="ok"]', el).focus();
+    });
+  }
+
+  /* ════════════════════════════════════════
+     오늘 (F3)
+     ════════════════════════════════════════ */
+
+  const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+  const hhmm = ms => { const d = new Date(ms); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+
+  function durationText(min) {
+    if (min < 60) return `${min}분`;
+    const h = Math.floor(min / 60), m = min % 60;
+    return m ? `${h}시간 ${m}분` : `${h}시간`;
+  }
+
+  /* ── 짧은 알림(토스트) ── */
+  function toast(msg, ms = 2600) {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    $('#toasts').appendChild(el);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, ms);
+  }
+
+  // 사용자가 목록에서 고른 시간대 (날짜가 바뀌면 무효)
+  let pickedSlot = null; // { key, slot }
+  let pendingPick = null; // 화면 전환 직후 고를 시간대
+
+  // 알림을 눌렀을 때: 오늘 화면으로 가서 그 시간대를 카드에 띄움
+  function openTodaySlot(slotId) {
+    const pick = { key: todayKey(), slot: slotId };
+    openSnooze = null;
+    if (currentRoute() !== 'today') {
+      pendingPick = pick;
+      location.hash = '#today';
+    } else {
+      pickedSlot = pick;
+      renderToday();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+  let openSnooze = null; // 열려 있는 '나중에' 메뉴의 약 id
+
+  /*
+    카드에 띄울 시간대
+    0) 목록에서 직접 고른 시간대
+    1) 지금 챙길 약: 지금·체크 전 상태가 있는 시간대(이른 것부터), 없으면 미룸 상태가 있는 시간대
+    2) 오늘 놓친 시간대 중 가장 최근 것
+    3) 다음 예정 시간대
+    그 밖의 놓친 시간대는 '오늘의 시간대' 목록에서 눌러서 본다.
+  */
+  function focusSlot(key, slots, now) {
+    if (pickedSlot?.key === key) {
+      const s = slots.find(x => x.slot === pickedSlot.slot);
+      if (s) return { slot: s, mode: 'picked' };
+    }
+    const statuses = s => slotSummary(key, s, now).statuses;
+    const active = slots.find(s => statuses(s).some(st => st === 'now' || st === 'overdue'))
+      || slots.find(s => statuses(s).includes('snoozed'));
+    if (active) return { slot: active, mode: 'active' };
+    const missed = slots.filter(s => statuses(s).includes('missed')).at(-1);
+    if (missed) return { slot: missed, mode: 'missed' };
+    const next = slots.find(s => statuses(s).includes('upcoming'));
+    if (next) return { slot: next, mode: 'next' };
+    return null;
+  }
+
+  function doseBadge(status, log) {
+    switch (status) {
+      case 'taken':   return `<span class="badge badge-ok">먹었어요 ${hhmm(log.at)}</span>`;
+      case 'skipped': return '<span class="badge badge-muted">건너뜀</span>';
+      case 'snoozed': return `<span class="badge badge-warn">미룸 · ${hhmm(log.snoozeUntil)}</span>`;
+      case 'overdue': return '<span class="badge badge-warn">체크 전</span>';
+      case 'missed':  return '<span class="badge badge-miss">놓침</span>';
+      default:        return '';
+    }
+  }
+
+  function renderNowCard(key, slots, now) {
+    const card = $('#nowCard');
+    const focus = focusSlot(key, slots, now);
+    delete card.dataset.slot;
+
+    if (!focus) {
+      card.className = 'card now-card tone-done';
+      card.innerHTML = `
+        <div class="now-head"><div>
+          <div class="now-kicker">${slots.length ? '오늘 복용 끝' : '오늘은 쉬는 날'}</div>
+          <h2 class="now-title">${slots.length ? '오늘 약을 모두 챙겼어요 🌱' : '오늘 먹을 약이 없어요'}</h2>
+        </div></div>
+        <div class="now-empty">${slots.length ? '내일도 같은 시간에 알려 드릴게요.' : '약을 등록하면 시간대별로 여기에 보여요.'}</div>
+        <div class="now-foot"><span class="legal">복용 방법은 의사·약사의 안내를 따르세요.</span></div>`;
+      return;
+    }
+
+    const s = focus.slot;
+    const sum = slotSummary(key, s, now);
+    const minsFrom = Math.round((now - s.at) / 60000);
+    let tone = 'ok', kicker;
+
+    if (sum.status === 'done') {
+      tone = 'done'; kicker = '모두 챙겼어요';
+    } else if (s.at > now) {
+      kicker = `다음 복용 · ${durationText(Math.max(1, Math.ceil((s.at - now) / 60000)))} 뒤`;
+    } else if (sum.status === 'missed') {
+      tone = 'miss'; kicker = `놓쳤어요 · ${durationText(minsFrom)} 지남`;
+    } else if (sum.status === 'overdue') {
+      tone = 'warn'; kicker = `아직 체크 전이에요 · ${durationText(minsFrom)} 지남`;
+    } else if (sum.status === 'snoozed') {
+      tone = 'warn'; kicker = '미뤄 둔 약이 있어요';
+    } else {
+      kicker = '지금 먹을 시간이에요';
+    }
+
+    const items = s.meds.map(m => {
+      const status = doseStatus(key, s.slot, m.id, now);
+      const log = getLog(key, s.slot, m.id);
+      const checked = status === 'taken' || status === 'skipped';
+      const actions = checked
+        ? `<button class="btn btn-ghost btn-sm" data-act="undo" data-med="${m.id}">되돌리기</button>`
+        : `<button class="btn btn-primary btn-sm" data-act="take" data-med="${m.id}">${status === 'missed' ? '늦게 먹었어요' : '먹었어요'}</button>
+           ${status === 'upcoming' ? '' : `
+           <div class="snooze-wrap">
+             <button class="btn btn-ghost btn-sm" data-act="snooze-menu" data-med="${m.id}" aria-expanded="${openSnooze === m.id}">나중에 ▾</button>
+             ${openSnooze === m.id ? `<div class="snooze-menu">
+               <button data-act="snooze" data-min="30" data-med="${m.id}">30분 뒤</button>
+               <button data-act="snooze" data-min="60" data-med="${m.id}">1시간 뒤</button>
+             </div>` : ''}
+           </div>`}
+           <button class="btn btn-ghost btn-sm" data-act="skip" data-med="${m.id}">건너뛰기</button>`;
+      return `
+        <li class="dose ${checked ? 'is-checked' : ''}">
+          ${medThumb(m, 60)}
+          <div class="dose-info">
+            <div class="dose-name">${esc(m.name)} <span class="med-dose">${esc(m.dose)}</span> ${doseBadge(status, log)}</div>
+            ${m.memo ? `<div class="dose-memo">${esc(m.memo)}</div>` : ''}
+          </div>
+          <div class="dose-actions">${actions}</div>
+        </li>`;
+    }).join('');
+
+    card.className = `card now-card tone-${tone}`;
+    card.dataset.slot = s.slot;
+    card.innerHTML = `
+      <div class="now-head">
+        <div>
+          <div class="now-kicker">${kicker}</div>
+          <h2 class="now-title">${s.label} 약<span class="t">${s.time}</span></h2>
+        </div>
+      </div>
+      <ul class="dose-list">${items}</ul>
+      <div class="now-foot">
+        <span class="legal">복용 방법은 의사·약사의 안내를 따르세요.</span>
+        ${sum.pending >= 2 ? `<button class="btn btn-primary" data-act="take-all">모두 먹었어요 (${sum.pending})</button>` : ''}
+      </div>`;
+  }
+
+  function slotBadge(sum) {
+    switch (sum.status) {
+      case 'done':     return '<span class="badge badge-ok">완료 ✓</span>';
+      case 'missed':   return `<span class="badge badge-miss">놓침 ${sum.missed}</span>`;
+      case 'overdue':  return '<span class="badge badge-warn">체크 전</span>';
+      case 'now':      return '<span class="badge badge-now">지금</span>';
+      case 'snoozed':  return '<span class="badge badge-warn">미룸</span>';
+      default:         return `<span class="badge badge-muted">${sum.pending}개 예정</span>`;
+    }
+  }
+
+  function renderToday() {
+    const key = todayKey();
+    const now = Date.now();
+    const slots = slotsForDate(key);
+    const d = parseDate(key);
+
+    // 상단: 날짜와 진행률 (먹은 약 기준)
+    let total = 0, taken = 0;
+    for (const s of slots) for (const m of s.meds) {
+      total++;
+      if (getLog(key, s.slot, m.id)?.status === 'taken') taken++;
+    }
+    $('#todayDate').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAYS[d.getDay()]})`;
+    $('#todayProgressText').innerHTML = total
+      ? `오늘 먹을 약 ${total}개 중 <b>${taken}개</b>를 챙겼어요`
+      : '오늘은 먹을 약이 없어요';
+    $('#todayProgressBar').style.width = total ? `${(taken / total) * 100}%` : '0';
+
+    renderNowCard(key, slots, now);
+    renderAlertStatus();
+    renderPlantCard();
+
+    const shown = $('#nowCard').dataset.slot;
+    $('#todaySlots').innerHTML = slots.length
+      ? slots.map(s => {
+          const sum = slotSummary(key, s, now);
+          return `
+            <li class="slot-row ${sum.status === 'done' ? 'is-done' : ''} ${s.slot === shown ? 'selected' : ''}" data-slot="${s.slot}" tabindex="0">
+              <span class="time">${s.time}</span>
+              <span class="name">${s.label}</span>
+              <span class="thumbs">${s.meds.map(m => medThumb(m, 34)).join('')}</span>
+              ${slotBadge(sum)}
+            </li>`;
+        }).join('')
+      : '<li class="empty">오늘 먹을 약이 없어요.</li>';
+  }
+
+  /* ── 체크 동작 ── */
+  function checkDose(key, slotId, medId, entry) {
+    const slot = slotsForDate(key).find(s => s.slot === slotId);
+    const wasDone = slot && slotSummary(key, slot).pending === 0;
+    setLog(key, slotId, medId, entry);
+    if (slot && !wasDone && slotSummary(key, slot).pending === 0) {
+      const anyTaken = slot.meds.some(m => getLog(key, slotId, m.id)?.status === 'taken');
+      if (anyTaken) toast(`${slotLabel(slotId)} 약을 모두 챙겼어요 🌱`);
+    }
+  }
+
+  $('#nowCard').addEventListener('click', e => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const key = todayKey();
+    const slotId = $('#nowCard').dataset.slot;
+    const medId = btn.dataset.med;
+    const now = Date.now();
+    const act = btn.dataset.act;
+
+    if (act === 'snooze-menu') {
+      openSnooze = openSnooze === medId ? null : medId;
+      renderToday();
+      return;
+    }
+    openSnooze = null;
+
+    if (act === 'take') checkDose(key, slotId, medId, { status: 'taken', at: now });
+    if (act === 'skip') checkDose(key, slotId, medId, { status: 'skipped', at: now });
+    if (act === 'undo') setLog(key, slotId, medId, null);
+    if (act === 'snooze') {
+      const min = Number(btn.dataset.min);
+      setLog(key, slotId, medId, { status: 'snoozed', at: now, snoozeUntil: now + min * 60000 });
+    }
+    if (act === 'take-all') {
+      const slot = slotsForDate(key).find(s => s.slot === slotId);
+      const pending = slot.meds.filter(m => !['taken', 'skipped'].includes(doseStatus(key, slotId, m.id, now)));
+      pending.forEach((m, i) => {
+        if (i < pending.length - 1) setLog(key, slotId, m.id, { status: 'taken', at: now });
+        else checkDose(key, slotId, m.id, { status: 'taken', at: now });
+      });
+    }
+    renderToday();
+    checkReminders();
+  });
+
+  // '나중에' 메뉴 바깥을 누르면 닫기
+  document.addEventListener('click', e => {
+    if (openSnooze && !e.target.closest('.snooze-wrap')) { openSnooze = null; renderToday(); }
+  });
+
+  function pickSlot(row) {
+    pickedSlot = { key: todayKey(), slot: row.dataset.slot };
+    openSnooze = null;
+    renderToday();
+    if (window.innerWidth <= 1000) $('#nowCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  $('#todaySlots').addEventListener('click', e => {
+    const row = e.target.closest('[data-slot]');
+    if (row) pickSlot(row);
+  });
+  $('#todaySlots').addEventListener('keydown', e => {
+    const row = e.target.closest('[data-slot]');
+    if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pickSlot(row); }
+  });
+
+  // 시간이 지나면 상태가 바뀌므로 오늘 화면을 보고 있을 때 30초마다 다시 그림
+  setInterval(() => { if (currentRoute() === 'today' && !document.hidden) renderToday(); }, 30000);
+
+  /* ════════════════════════════════════════
+     알림과 재알림 (F4)
+     ════════════════════════════════════════
+     정시 알림 → 재알림(+30분) → [이메일(+60분), 7단계] → 놓침(+2시간, 화면에만 표시)
+     - 20초마다, 그리고 탭이 다시 보일 때 확인
+     - 같은 알림은 state.sent에 남겨 한 번만 보냄
+     - 늦게 열었으면 지금 단계의 알림 하나만 보냄 (지난 단계는 건너뜀)
+     - '나중에'로 미룬 약은 미룬 시각에 따로 알림
+     - 브라우저 알림이 막혀도 화면 안 알림 카드는 항상 띄움
+  */
+
+  const DEFAULT_TITLE = document.title;
+  const LOGO_URL = svgURL(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="10" fill="#F6F4EE"/><path d="M20 22V13" stroke="#3D8B59" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M20 15c-1-4.5-4.6-6.6-8.5-6 .3 4.2 3.6 6.8 8.5 6z" fill="#5FA877"/><path d="M20 13.5c.8-4.8 4.4-7.4 8.8-7-.2 4.6-3.8 7.4-8.8 7z" fill="#3D8B59"/><path d="M9.5 21.5h21l-2.3 12.2a2.5 2.5 0 0 1-2.5 2H14.3a2.5 2.5 0 0 1-2.5-2z" fill="#D27A4F"/><rect x="8" y="20" width="24" height="4.2" rx="2" fill="#E08D5F"/></svg>`);
+
+  const notifySupported = 'Notification' in window;
+  const permission = () => (notifySupported ? Notification.permission : 'unsupported');
+
+  function noticeTitle(kind, slot) {
+    if (kind === 'remind') return `${slot.label} 약 체크가 아직 없어요 (${slot.time})`;
+    if (kind === 'snooze') return `미뤄 둔 ${slot.label} 약 먹을 시간이에요`;
+    return `${slot.label} 약 먹을 시간이에요 (${slot.time})`;
+  }
+
+  // 알림 한 건 보내기: 브라우저 알림(허용 시) + 화면 안 카드(항상)
+  function notify({ kind, key, slot, meds, preview = false }) {
+    const title = (preview ? '[미리보기] ' : '') + noticeTitle(kind, slot);
+    const body = meds.map(m => `${m.name} ${m.dose}`.trim()).join(', ');
+
+    if (permission() === 'granted' && (state.settings.notifyEnabled || preview)) {
+      try {
+        const n = new Notification(title, {
+          body,
+          icon: meds[0] ? (meds.find(m => m.photo)?.photo || medArtURL(meds[0])) : LOGO_URL,
+          tag: `yaksak-${slot.slot}`,
+          renotify: true,
+        });
+        n.onclick = () => { window.focus(); openTodaySlot(slot.slot); n.close(); };
+      } catch (e) {
+        // 일부 휴대폰 브라우저는 페이지에서 바로 알림을 만들 수 없음 → 화면 안 카드만
+      }
+    }
+    showAlertCard({ kind, key, slot: slot.slot, title, meds, preview });
+  }
+
+  /* ── 화면 안 알림 카드 ── */
+  const alertCards = new Map(); // id → { el, info }
+
+  function showAlertCard(info) {
+    const id = info.preview ? 'preview' : `${info.key}|${info.slot}`;
+    alertCards.get(id)?.el.remove();
+
+    const el = document.createElement('div');
+    el.className = `alert kind-${info.kind}`;
+    el.innerHTML = `
+      <div class="alert-body">
+        <div class="alert-thumbs">${info.meds.slice(0, 3).map(m => medThumb(m, 48)).join('')}</div>
+        <div class="alert-text">
+          <div class="alert-app">약싹 · ${hhmm(Date.now())}</div>
+          <div class="alert-title">${esc(info.title)}</div>
+          <div class="alert-meds">${info.meds.map(m => esc(`${m.name} ${m.dose}`.trim())).join(', ')}</div>
+          ${info.sub ? `<div class="alert-meds">${esc(info.sub)}</div>` : ''}
+        </div>
+      </div>
+      <div class="alert-actions">
+        <button class="btn btn-primary btn-sm" data-act="take">먹었어요</button>
+        <button class="btn btn-ghost btn-sm" data-act="snooze">30분 뒤</button>
+        <button class="btn btn-ghost btn-sm" data-act="close">닫기</button>
+      </div>`;
+    el.addEventListener('click', e => {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act) onAlertAction(id, act);
+      else if (e.target.closest('.alert-body')) {
+        // 브라우저 알림을 눌렀을 때처럼 오늘 화면에서 그 시간대를 보여 줌
+        removeAlertCard(id);
+        openTodaySlot(info.slot);
+      }
+    });
+    $('#alerts').prepend(el);
+    alertCards.set(id, { el, info });
+
+    // 오래된 카드부터 정리 (최대 3개)
+    const ids = [...alertCards.keys()];
+    while (ids.length > 3) removeAlertCard(ids.shift());
+  }
+
+  function removeAlertCard(id) {
+    const card = alertCards.get(id);
+    if (!card) return;
+    alertCards.delete(id);
+    card.el.classList.add('out');
+    card.el.style.transition = 'opacity .2s';
+    card.el.style.opacity = '0';
+    setTimeout(() => card.el.remove(), 200);
+  }
+
+  function onAlertAction(id, act) {
+    const { info } = alertCards.get(id) || {};
+    if (!info) return;
+    removeAlertCard(id);
+    if (act === 'close') return;
+    if (info.preview) { toast('미리보기라 기록은 바뀌지 않아요'); return; }
+
+    const now = Date.now();
+    const open = info.meds.filter(m => !['taken', 'skipped'].includes(doseStatus(info.key, info.slot, m.id, now)));
+    if (act === 'take') open.forEach(m => checkDose(info.key, info.slot, m.id, { status: 'taken', at: now }));
+    if (act === 'snooze') {
+      open.forEach(m => setLog(info.key, info.slot, m.id, { status: 'snoozed', at: now, snoozeUntil: now + 30 * 60000 }));
+      toast(`30분 뒤 ${hhmm(now + 30 * 60000)}에 다시 알려 드릴게요`);
+    }
+    if (currentRoute() === 'today') renderToday();
+    checkReminders();
+  }
+
+  // 이미 다 체크했거나 날짜가 지난 알림 카드는 치움
+  function refreshAlertCards(now = Date.now()) {
+    const today = todayKey();
+    for (const [id, { info }] of alertCards) {
+      if (info.preview) continue;
+      const done = info.key !== today || info.meds.every(m =>
+        ['taken', 'skipped'].includes(doseStatus(info.key, info.slot, m.id, now)));
+      if (done) removeAlertCard(id);
+    }
+  }
+
+  /* ── 시각 확인 ── */
+  function checkReminders(now = Date.now()) {
+    const key = todayKey();
+    const { remindAfterMin, missAfterMin } = state.settings;
+    const missMs = missAfterMin * 60000;
+    let dirty = false;
+    let titleSlot = null;
+
+    for (const s of slotsForDate(key)) {
+      const elapsed = now - s.at;
+
+      // 1) 시간대 알림: 아직 아무 기록이 없는 약 (미룬 약은 아래에서 따로)
+      if (elapsed >= 0 && elapsed < missMs) {
+        const meds = s.meds.filter(m => !getLog(key, s.slot, m.id));
+        if (meds.length) {
+          const stage = elapsed >= remindAfterMin * 60000 ? 'remind' : 'ontime';
+          const id = `${key}|${s.slot}|${stage}`;
+          if (!state.sent[id]) {
+            state.sent[id] = now;
+            dirty = true;
+            notify({ kind: stage, key, slot: s, meds });
+          }
+        }
+      }
+
+      // 2) 미룬 약: 미룬 시각이 되면 한 번
+      const byTime = {};
+      for (const m of s.meds) {
+        const log = getLog(key, s.slot, m.id);
+        if (log?.status === 'snoozed' && now >= log.snoozeUntil && now - log.snoozeUntil < missMs)
+          (byTime[log.snoozeUntil] ||= []).push(m);
+      }
+      for (const [until, meds] of Object.entries(byTime)) {
+        const id = `${key}|${s.slot}|snooze|${until}`;
+        if (!state.sent[id]) {
+          state.sent[id] = now;
+          dirty = true;
+          notify({ kind: 'snooze', key, slot: s, meds });
+        }
+      }
+
+      // 3) 이메일: 시각부터 설정한 시간(기본 60분) 동안 체크가 없으면 한 번
+      const email = state.settings.email;
+      if (email.enabled && elapsed >= email.sendAfterMin * 60000 && elapsed < missMs) {
+        const id = `${key}|${s.slot}|email`;
+        if (!state.sent[id] && s.meds.some(m => !getLog(key, s.slot, m.id))) {
+          state.sent[id] = now;
+          dirty = true;
+          sendReminderEmail({ key, slot: s });
+        }
+      }
+
+      // 4) 탭 제목: 지금 먹을 약이 있는 첫 시간대
+      if (!titleSlot && s.meds.some(m => ['now', 'overdue'].includes(doseStatus(key, s.slot, m.id, now)))) titleSlot = s;
+    }
+
+    document.title = titleSlot ? `● ${titleSlot.label} 약 먹을 시간 — 약싹` : DEFAULT_TITLE;
+
+    // 사흘 지난 보낸 기록은 정리
+    const cutoff = addDays(key, -3);
+    for (const id of Object.keys(state.sent)) {
+      if (id.slice(0, 10) < cutoff) { delete state.sent[id]; dirty = true; }
+    }
+    if (dirty) save();
+    refreshAlertCards(now);
+  }
+
+  setInterval(() => checkReminders(), 20000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    checkReminders();
+    if (currentRoute() === 'today') renderToday();
+  });
+
+  /* ════════════════════════════════════════
+     이메일 알림 (F4)
+     ════════════════════════════════════════
+     - 본문에는 날짜·시간대만 쓰고 약 이름은 쓰지 않음 (민감한 건강 정보)
+     - EmailJS REST API로 발송, 키가 비어 있으면 '데모 발송'으로 기록만 남기고 화면 안 카드 표시
+  */
+
+  const EMAILJS_URL = 'https://api.emailjs.com/api/v1.0/email/send';
+  const EMAIL_LOG_MAX = 30;
+
+  function emailContent(key, slot, test = false) {
+    const d = parseDate(key);
+    const dateText = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAYS[d.getDay()]})`;
+    const link = /^https?:/.test(location.protocol) ? `\n\n${location.origin}${location.pathname}#today` : '';
+    return {
+      subject: `[약싹] ${test ? '(테스트) ' : ''}${slot.label} 약 체크가 아직 없어요`,
+      message:
+        `${dateText} ${slot.label}(${slot.time}) 약 체크가 아직 없어요.\n` +
+        `약싹을 열어 확인해 주세요.${link}\n\n` +
+        (test ? '※ 설정에서 보낸 테스트 메일이에요.\n' : '') +
+        '— 약싹 · 챙길수록 자라는 복약 습관',
+    };
+  }
+
+  const emailKeysReady = e => !!(e.serviceId.trim() && e.templateId.trim() && e.publicKey.trim());
+
+  function addEmailLog(entry) {
+    state.emailLog.unshift(entry);
+    state.emailLog.length = Math.min(state.emailLog.length, EMAIL_LOG_MAX);
+    save();
+    if (currentRoute() === 'prefs') renderEmailCard();
+  }
+
+  // 메일 한 통 보내기 → 'demo' | 'sent' | 'failed'
+  async function sendEmail({ key, slot, test = false }) {
+    const e = state.settings.email;
+    const { subject, message } = emailContent(key, slot, test);
+    const base = { at: Date.now(), key, slot: slot.slot, to: e.address.trim(), test };
+
+    if (!emailKeysReady(e)) {
+      addEmailLog({ ...base, mode: 'demo' });
+      return { mode: 'demo', subject };
+    }
+    try {
+      const res = await fetch(EMAILJS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: e.serviceId.trim(),
+          template_id: e.templateId.trim(),
+          user_id: e.publicKey.trim(),
+          template_params: { to_email: e.address.trim(), subject, message, slot: slot.label, time: slot.time, date: key },
+        }),
+      });
+      if (!res.ok) throw new Error((await res.text()).slice(0, 120) || `HTTP ${res.status}`);
+      addEmailLog({ ...base, mode: 'sent' });
+      return { mode: 'sent', subject };
+    } catch (err) {
+      addEmailLog({ ...base, mode: 'failed', error: String(err.message || err) });
+      return { mode: 'failed', subject, error: String(err.message || err) };
+    }
+  }
+
+  // 체크가 없을 때 자동 발송
+  async function sendReminderEmail({ key, slot }) {
+    const r = await sendEmail({ key, slot });
+    const meds = slot.meds.filter(m => !getLog(key, slot.slot, m.id));
+    if (r.mode === 'demo') {
+      showAlertCard({ kind: 'email', key, slot: slot.slot, meds,
+        title: `메일 데모 발송: ${r.subject}`, sub: 'EmailJS 연결 전이라 메일 대신 화면에 알려요.' });
+    } else if (r.mode === 'failed') {
+      toast('이메일을 보내지 못했어요. 설정의 발송 기록을 확인해 주세요', 3600);
+    }
+  }
+
+  /* ── 설정 화면 '이메일 알림' 카드 ── */
+  function renderEmailCard() {
+    const e = state.settings.email;
+    const sampleSlot = { slot: 'lunch', label: '점심', time: state.settings.slotTimes.lunch };
+    const { subject, message } = emailContent(todayKey(), sampleSlot);
+    const modeBadge = {
+      demo:   '<span class="badge badge-muted">데모</span>',
+      sent:   '<span class="badge badge-ok">완료</span>',
+      failed: '<span class="badge badge-miss">실패</span>',
+    };
+    const logs = state.emailLog.map(l => {
+      const d = new Date(l.at);
+      return `<li title="${esc(l.error || '')}">
+        <span class="when">${d.getMonth() + 1}/${d.getDate()} ${hhmm(l.at)}</span>
+        <span class="what">${l.test ? '테스트 · ' : ''}${slotLabel(l.slot)} · ${esc(l.to || '받는 사람 없음')}</span>
+        ${modeBadge[l.mode]}
+      </li>`;
+    }).join('') || '<li class="empty-log">아직 보낸 메일이 없어요.</li>';
+
+    $('#emailCard').innerHTML = `
+      <div class="pref-head">
+        <h2 class="card-title">이메일 알림</h2>
+        <label class="switch" aria-label="이메일 알림 켜기"><input type="checkbox" id="emEnabled" ${e.enabled ? 'checked' : ''}><span></span></label>
+      </div>
+      <p class="pref-desc pc-only">PC 알림을 못 봤을 때 휴대폰 메일 앱으로 한 번 더 알려요. 약싹 탭이 열려 있을 때만 보내져요.</p>
+      <p class="pref-desc mobile-only">알림을 못 봤을 때 메일로 한 번 더 알려요. 약싹이 열려 있을 때만 보내져요.</p>
+      <div class="email-body ${e.enabled ? '' : 'off'}">
+        <div class="field">
+          <label for="emAddress">받을 이메일</label>
+          <input class="input" type="email" id="emAddress" placeholder="name@example.com" value="${esc(e.address)}">
+          <div class="field-error" id="emAddressErr"></div>
+        </div>
+        <div class="field">
+          <span class="field-label">보내는 시점</span>
+          <div class="pick-chips" id="emAfter">
+            ${[30, 60, 90].map(n => `<button type="button" class="pick-chip ${e.sendAfterMin === n ? 'active' : ''}" data-min="${n}">${n}분 뒤</button>`).join('')}
+          </div>
+          <div class="field-hint">시간대 시각부터 이만큼 지나도 체크가 없으면 보내요.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field-label">메일 미리보기</span>
+        <div class="mail-preview">
+          <div class="mh">
+            <div>받는 사람 <b>${esc(e.address || '받을 이메일')}</b></div>
+            <div>제목 <b>${esc(subject)}</b></div>
+          </div>
+          <div class="mb">${esc(message)}</div>
+        </div>
+        <div class="field-hint">건강 정보가 새지 않도록 약 이름은 메일에 쓰지 않아요.</div>
+      </div>
+
+      <button class="btn btn-ghost" id="emTest" style="width:100%">테스트 메일 보내기</button>
+
+      <details class="fold">
+        <summary>실제 메일 발송 연결 (EmailJS) <span class="badge badge-ok" id="emLinked" style="margin-left:auto;margin-right:8px" ${emailKeysReady(e) ? '' : 'hidden'}>입력됨</span></summary>
+        <div class="fold-body">
+          <p class="pref-desc">비워 두면 메일 대신 화면에 알리는 '데모 발송'으로 동작해요. EmailJS 템플릿의 받는 사람에는 <span class="code">{{to_email}}</span>, 제목에는 <span class="code">{{subject}}</span>, 본문에는 <span class="code">{{message}}</span>를 넣어 주세요.</p>
+          <div class="field"><label for="emService">Service ID</label><input class="input" id="emService" value="${esc(e.serviceId)}" placeholder="service_xxxxxxx" autocomplete="off"></div>
+          <div class="field"><label for="emTemplate">Template ID</label><input class="input" id="emTemplate" value="${esc(e.templateId)}" placeholder="template_xxxxxxx" autocomplete="off"></div>
+          <div class="field"><label for="emKey">Public Key</label><input class="input" id="emKey" value="${esc(e.publicKey)}" placeholder="공개 키" autocomplete="off"></div>
+        </div>
+      </details>
+
+      <h3 class="sub-title">발송 기록 <span style="color:var(--sub);font-weight:400;font-size:12.5px">최근 ${EMAIL_LOG_MAX}개</span></h3>
+      <ul class="mail-log">${logs}</ul>`;
+  }
+
+  const emailCard = $('#emailCard');
+  const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+  emailCard.addEventListener('change', e => {
+    const em = state.settings.email;
+    if (e.target.id === 'emEnabled') {
+      em.enabled = e.target.checked;
+      save(); renderEmailCard();
+      toast(em.enabled ? '이메일 알림을 켰어요' : '이메일 알림을 껐어요');
+    }
+  });
+
+  emailCard.addEventListener('input', e => {
+    const em = state.settings.email;
+    const map = { emAddress: 'address', emService: 'serviceId', emTemplate: 'templateId', emKey: 'publicKey' };
+    const field = map[e.target.id];
+    if (!field) return;
+    em[field] = e.target.value;
+    save();
+    $('#emLinked').hidden = !emailKeysReady(em);
+    if (field === 'address') {
+      $('#emAddressErr').textContent = '';
+      // 미리보기의 받는 사람만 갱신 (입력 중 포커스 유지)
+      const b = emailCard.querySelector('.mail-preview .mh b');
+      if (b) b.textContent = em.address || '받을 이메일';
+    }
+  });
+
+  emailCard.addEventListener('focusout', e => {
+    if (e.target.id === 'emAddress') {
+      const v = e.target.value.trim();
+      $('#emAddressErr').textContent = v && !isEmail(v) ? '이메일 주소 형식을 확인해 주세요.' : '';
+    }
+  });
+
+  emailCard.addEventListener('click', async e => {
+    const chip = e.target.closest('[data-min]');
+    if (chip) {
+      state.settings.email.sendAfterMin = Number(chip.dataset.min);
+      save(); renderEmailCard();
+      return;
+    }
+    if (e.target.id === 'emTest') {
+      const em = state.settings.email;
+      const addr = em.address.trim();
+      if (emailKeysReady(em) && !isEmail(addr)) {
+        $('#emAddressErr').textContent = addr ? '이메일 주소 형식을 확인해 주세요.' : '받을 이메일을 적어 주세요.';
+        $('#emAddress').focus();
+        return;
+      }
+      e.target.disabled = true;
+      e.target.textContent = '보내는 중…';
+      const slot = { slot: 'lunch', label: '점심', time: state.settings.slotTimes.lunch };
+      const r = await sendEmail({ key: todayKey(), slot, test: true });
+      if (r.mode === 'demo') toast('데모 발송으로 기록했어요. EmailJS를 연결하면 실제로 보내져요', 3600);
+      if (r.mode === 'sent') toast(`${addr}로 테스트 메일을 보냈어요`);
+      if (r.mode === 'failed') toast('메일을 보내지 못했어요. EmailJS 값을 확인해 주세요', 3600);
+      renderEmailCard();
+    }
+  });
+
+  /* ── 오늘 화면 '알림 상태' 카드 ── */
+  function renderAlertStatus() {
+    const p = permission();
+    const st = state.settings;
+    let cls = '', head, sub, btn = '';
+    if (p === 'unsupported') {
+      head = '이 브라우저는 알림을 지원하지 않아요'; sub = '화면 안 알림 카드로 알려 드려요.';
+    } else if (p === 'denied') {
+      cls = 'blocked'; head = '브라우저 알림이 차단돼 있어요';
+      sub = '주소창 왼쪽 자물쇠 → 알림 → 허용으로 바꿔 주세요.';
+    } else if (p === 'default') {
+      head = '브라우저 알림이 꺼져 있어요'; sub = '켜면 다른 창을 보고 있어도 알려 드려요.';
+      btn = '<button class="btn btn-primary btn-sm" data-act="perm">켜기</button>';
+    } else if (!st.notifyEnabled) {
+      head = '설정에서 알림을 꺼 두었어요'; sub = '화면 안 알림 카드만 떠요.';
+      btn = '<button class="btn btn-primary btn-sm" data-act="enable">켜기</button>';
+    } else {
+      cls = 'on'; head = '브라우저 알림이 켜져 있어요'; sub = '약 사진과 함께 알려 드려요.';
+    }
+
+    const emailOn = st.email.enabled;
+    const miss = st.missAfterMin;
+    const stages = [
+      { min: 0, cls: '', label: '<span class="pc-only">PC </span>알림' },
+      { min: st.remindAfterMin, cls: 'warn', label: '체크 없으면 재알림', off: st.remindAfterMin >= miss ? '건너뜀' : '' },
+      { min: st.email.sendAfterMin, cls: 'warn', label: '이메일 알림', off: !emailOn ? '꺼짐' : st.email.sendAfterMin >= miss ? '건너뜀' : '' },
+      { min: miss, cls: 'miss', label: '놓침으로 기록' },
+    ]
+      .sort((a, b) => a.min - b.min || (a.cls === 'miss') - (b.cls === 'miss'))
+      .map(x => `<li class="${x.cls} ${x.off ? 'off' : ''}"><span class="when">${x.min ? '+' + durationText(x.min).replace(' ', '') : '정시'}</span><span>${x.label}</span>${x.off ? `<span class="off-tag">${x.off}</span>` : ''}</li>`)
+      .join('');
+    $('#alertStatus').innerHTML = `
+      <div class="perm ${cls} pc-only">
+        <span class="dot"></span>
+        <div class="perm-text"><b>${head}</b><span>${sub}</span></div>
+        ${btn}
+      </div>
+      <div class="perm on mobile-only">
+        <span class="dot"></span>
+        <div class="perm-text"><b>화면 안 알림으로 알려 드려요</b><span>약싹을 열어 둔 동안 화면 안 알림 카드로 알려 드려요.</span></div>
+      </div>
+      <ul class="stages">${stages}</ul>
+      <p class="alert-note pc-only">알림은 약싹 탭이 열려 있을 때 와요. 탭을 우클릭해 고정해 두면 실수로 닫히지 않아요.</p>
+      <p class="alert-note os-note pc-only">허용했는데도 알림이 안 뜨면 Windows <b>설정 → 시스템 → 알림</b>에서 브라우저 알림이 켜져 있는지, 방해 금지가 꺼져 있는지 확인해 주세요.</p>
+      <button class="btn btn-ghost btn-block" data-act="preview">알림 미리보기</button>`;
+  }
+
+  async function requestPermission() {
+    if (!notifySupported) return;
+    try { await Notification.requestPermission(); } catch (e) { /* 무시 */ }
+    if (permission() === 'granted') {
+      state.settings.notifyEnabled = true;
+      save();
+      toast('브라우저 알림을 켰어요');
+    } else if (permission() === 'denied') {
+      toast('알림이 차단됐어요. 주소창 자물쇠에서 허용할 수 있어요');
+    }
+    renderAlertStatus();
+  }
+
+  // 미리보기: 지금(또는 다음) 시간대의 약으로 알림 한 번 보여 주기 — 기록은 바뀌지 않음
+  function previewNotice() {
+    const key = todayKey();
+    const slots = slotsForDate(key);
+    const now = Date.now();
+    const slot = focusSlot(key, slots, now)?.slot || slots[0];
+    if (!slot) {
+      notify({ kind: 'ontime', key, preview: true, slot: { slot: 'lunch', label: '점심', time: state.settings.slotTimes.lunch },
+        meds: [{ id: 'demo', name: '예시 약', dose: '1정', color: MED_COLORS[0] }] });
+      return;
+    }
+    notify({ kind: 'ontime', key, slot, meds: slot.meds, preview: true });
+    if (permission() !== 'granted') toast('브라우저 알림을 켜면 화면 밖에도 떠요');
+  }
+
+  $('#alertStatus').addEventListener('click', e => {
+    const act = e.target.closest('[data-act]')?.dataset.act;
+    if (act === 'perm') requestPermission();
+    if (act === 'enable') { state.settings.notifyEnabled = true; save(); renderAlertStatus(); }
+    if (act === 'preview') previewNotice();
+  });
+
+  /* ════════════════════════════════════════
+     식물 캐릭터 (F5, PRD 6장 멀티미디어)
+     ════════════════════════════════════════
+     plantSVG({ stage: 0~4, month: 1~12, wilted, size })
+     얼굴이 있는 테라코타 화분 + 단계별 식물, 달마다 다른 꽃.
+     시들면 줄기가 기울고 채도가 낮아지고 표정이 시무룩해진다 (죽지는 않음).
+  */
+
+  const STAGES = [
+    { name: '씨앗', at: 0 },
+    { name: '새싹', at: 3 },
+    { name: '잎', at: 7 },
+    { name: '꽃봉오리', at: 14 },
+    { name: '꽃', at: 21 },
+  ];
+  const stageIndex = days => STAGES.reduce((acc, s, i) => (days >= s.at ? i : acc), 0);
+
+  // 1월 동백 … 12월 포인세티아
+  const MONTH_FLOWERS = [
+    { name: '동백',     kind: 'radial',  color: '#D8434E', inner: '#E8676E', center: '#F4C542', n: 6, rx: 8, ry: 10, off: 9, n2: 5, centerR: 4.5 },
+    { name: '매화',     kind: 'radial',  color: '#F9D3DC', stroke: '#E79AAE', center: '#E05A7A', n: 5, rx: 7.5, ry: 7.5, off: 8, centerR: 3, stamens: true },
+    { name: '개나리',   kind: 'radial',  color: '#F6C431', center: '#E3A21B', n: 4, rx: 4.5, ry: 12, off: 11, centerR: 2.5, twin: true },
+    { name: '튤립',     kind: 'tulip',   color: '#E8505B', inner: '#F27A80' },
+    { name: '카네이션', kind: 'radial',  color: '#EF6F93', inner: '#F59AB3', center: '#E25A82', n: 11, rx: 5, ry: 9, off: 9, n2: 8, centerR: 3, ruffle: true },
+    { name: '수국',     kind: 'cluster', color: '#8EA6E8', inner: '#B49AE0' },
+    { name: '해바라기', kind: 'radial',  color: '#F7C531', center: '#7A4B23', n: 16, rx: 3.6, ry: 9, off: 15, centerR: 9, seeds: true },
+    { name: '나팔꽃',   kind: 'trumpet', color: '#6C7FD8', inner: '#A9B5EE' },
+    { name: '코스모스', kind: 'radial',  color: '#F29CC2', center: '#F2C230', n: 8, rx: 5.2, ry: 10.5, off: 10.5, centerR: 4 },
+    { name: '구절초',   kind: 'radial',  color: '#FFFFFF', stroke: '#DCD6E8', center: '#F2C230', n: 14, rx: 2.8, ry: 10, off: 11, centerR: 5 },
+    { name: '국화',     kind: 'radial',  color: '#F2A93B', inner: '#F7C04A', center: '#E08E1E', n: 16, rx: 2.8, ry: 11, off: 10, n2: 12, centerR: 4 },
+    { name: '포인세티아', kind: 'bract', color: '#D23A3A', inner: '#E8595A', center: '#F2C230' },
+  ];
+  const flowerOf = month => MONTH_FLOWERS[(month - 1 + 12) % 12];
+
+  let plantUid = 0;
+
+  function leafPath(x, y, len, angle, color, width = .38) {
+    const w = len * width;
+    return `<path transform="translate(${x} ${y}) rotate(${angle})" fill="${color}"
+      d="M0 0 C${len * .3} ${-w} ${len * .75} ${-w} ${len} 0 C${len * .75} ${w} ${len * .3} ${w} 0 0Z"/>`;
+  }
+
+  function flowerHead(f, cx, cy) {
+    const petals = (x, y, n, rx, ry, off, color, { stroke, rot = 0, opacity } = {}) => Array.from({ length: n }, (_, i) =>
+      `<ellipse cx="${x}" cy="${y - off}" rx="${rx}" ry="${ry}" fill="${color}"${stroke ? ` stroke="${stroke}" stroke-width="1"` : ''}${opacity ? ` opacity="${opacity}"` : ''}
+        transform="rotate(${rot + (i * 360) / n} ${x} ${y})"/>`).join('');
+
+    if (f.kind === 'tulip') {
+      return `<path d="M${cx - 13} ${cy - 10} C${cx - 14} ${cy + 6} ${cx - 6} ${cy + 12} ${cx} ${cy + 12} C${cx + 6} ${cy + 12} ${cx + 14} ${cy + 6} ${cx + 13} ${cy - 10} L${cx + 7} ${cy - 3} L${cx} ${cy - 14} L${cx - 7} ${cy - 3}Z" fill="${f.color}"/>
+        <path d="M${cx - 7} ${cy - 3} L${cx} ${cy - 14} L${cx + 7} ${cy - 3} C${cx + 5} ${cy + 6} ${cx - 5} ${cy + 6} ${cx - 7} ${cy - 3}Z" fill="${f.inner}"/>`;
+    }
+    if (f.kind === 'cluster') {
+      const spots = [[0, 0], [-10, -4], [10, -4], [-6, -13], [6, -13], [-12, 6], [12, 6], [0, 9], [0, -20]];
+      return spots.map(([dx, dy], i) => {
+        const c = i % 2 ? f.inner : f.color, x = cx + dx, y = cy + dy - 2;
+        return `<g>${[0, 90, 180, 270].map(r => `<ellipse cx="${x}" cy="${y - 3.4}" rx="3" ry="3.6" fill="${c}" transform="rotate(${r + 45} ${x} ${y})"/>`).join('')}
+          <circle cx="${x}" cy="${y}" r="1.3" fill="#fff" opacity=".8"/></g>`;
+      }).join('');
+    }
+    if (f.kind === 'trumpet') {
+      return `<circle cx="${cx}" cy="${cy}" r="16" fill="${f.color}"/>
+        <circle cx="${cx}" cy="${cy}" r="11" fill="${f.inner}"/>
+        ${[0, 72, 144, 216, 288].map(r => `<path d="M${cx} ${cy} L${cx} ${cy - 16}" stroke="#fff" stroke-width="1.6" opacity=".7" transform="rotate(${r} ${cx} ${cy})"/>`).join('')}
+        <circle cx="${cx}" cy="${cy}" r="4.5" fill="#fff"/>
+        <circle cx="${cx}" cy="${cy}" r="2" fill="#F2E28A"/>`;
+    }
+    if (f.kind === 'bract') {
+      const bracts = (n, len, color, rot) => Array.from({ length: n }, (_, i) => leafPath(cx, cy, len, rot + (i * 360) / n - 90, color, .32)).join('');
+      return bracts(6, 22, f.color, 0) + bracts(5, 13, f.inner, 36) +
+        [[-2, -1], [2, -1], [0, 2.5]].map(([dx, dy]) => `<circle cx="${cx + dx}" cy="${cy + dy}" r="1.8" fill="${f.center}"/>`).join('');
+    }
+    // radial
+    let out = '';
+    const draw = (ox, oy, k = 1) => {
+      const x = cx + ox, y = cy + oy;
+      let g = petals(x, y, f.n, f.rx * k, f.ry * k, f.off * k, f.color, { stroke: f.stroke });
+      if (f.ruffle) g += petals(x, y, f.n, f.rx * k, 2, (f.off + f.ry - 2) * k, '#fff', { opacity: .35 });
+      if (f.n2) g += petals(x, y, f.n2, f.rx * .8 * k, f.ry * .72 * k, f.off * .6 * k, f.inner, { rot: 180 / f.n2 });
+      g += `<circle cx="${x}" cy="${y}" r="${f.centerR * k}" fill="${f.center}"/>`;
+      if (f.seeds) g += [[-3, -3], [3, -3], [0, 0], [-3, 3], [3, 3], [0, -5], [0, 5], [-5, 0], [5, 0]]
+        .map(([dx, dy]) => `<circle cx="${x + dx}" cy="${y + dy}" r=".9" fill="#4E2E14"/>`).join('');
+      if (f.stamens) g += Array.from({ length: 8 }, (_, i) => `<circle cx="${x}" cy="${y - 5.5}" r=".9" fill="#E8B83A" transform="rotate(${i * 45} ${x} ${y})"/>`).join('');
+      return g;
+    };
+    if (f.twin) out += draw(-12, 8, .7) + draw(12, 6, .65);
+    out += draw(0, 0, 1);
+    return out;
+  }
+
+  function plantSVG({ stage = 0, month = new Date().getMonth() + 1, wilted = false, size = 140 } = {}) {
+    const f = flowerOf(month);
+    const uid = `pl${++plantUid}`;
+    const G = '#4E9A63', G2 = '#3D8B59', GL = '#6DB27F';
+    let plant = '';
+
+    if (stage === 0) {
+      plant = `<ellipse cx="60" cy="92.5" rx="5.5" ry="3.8" fill="#9A6A43"/>
+        <path d="M57 91.5 Q60 90 63 91.5" stroke="#C99A6E" stroke-width="1" fill="none"/>
+        <path d="M60 89 q1.5 -4 4 -5" stroke="${GL}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+    } else if (stage === 1) {
+      plant = `<path d="M60 95 Q59 86 60 78" stroke="${G2}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        ${leafPath(60, 79, 15, -150, GL, .45)}${leafPath(60, 79, 15, -30, G, .45)}`;
+    } else {
+      const top = stage === 2 ? 56 : 46;
+      plant = `<path d="M60 95 C58 ${80} 62 ${68} 60 ${top}" stroke="${G2}" stroke-width="3" fill="none" stroke-linecap="round"/>
+        ${leafPath(60, 84, 22, -160, GL)}${leafPath(60, 80, 22, -20, G)}
+        ${leafPath(60, 68, 18, -145, G)}${leafPath(60, 65, 17, -35, GL)}`;
+      if (stage === 2) plant += leafPath(60, 57, 12, -110, GL, .45) + leafPath(60, 57, 12, -70, G, .45);
+      if (stage === 3) {
+        plant += `<ellipse cx="60" cy="38" rx="6.5" ry="9.5" fill="${f.kind === 'bract' ? '#7DBE6B' : f.color}" ${f.stroke ? `stroke="${f.stroke}"` : ''}/>
+          <path d="M53.5 41 Q55 47 60 47.5 Q65 47 66.5 41 Q63 45 60 44 Q57 45 53.5 41Z" fill="${G}"/>
+          ${leafPath(60, 47, 9, -125, G, .5)}${leafPath(60, 47, 9, -55, G, .5)}`;
+      }
+      if (stage === 4) plant += flowerHead(f, 60, 34);
+    }
+
+    // 표정
+    const face = wilted
+      ? `<path d="M46.5 117.5 l5 -2 M73.5 117.5 l-5 -2" stroke="#5A3A28" stroke-width="1.4" stroke-linecap="round"/>
+         <path d="M47.5 121 q2.5 1.8 5 0 M67.5 121 q2.5 1.8 5 0" stroke="#5A3A28" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+         <path d="M55 131 Q60 127 65 131" stroke="#5A3A28" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+         <path d="M76 124 q1.5 3 0 4.5 q-1.5 -1.5 0 -4.5Z" fill="#8EC3E6"/>`
+      : `<circle cx="50" cy="120" r="2.6" fill="#5A3A28"/><circle cx="70" cy="120" r="2.6" fill="#5A3A28"/>
+         <circle cx="50.8" cy="119.2" r=".8" fill="#fff"/><circle cx="70.8" cy="119.2" r=".8" fill="#fff"/>
+         ${stage === 4
+           ? '<path d="M53.5 126 Q60 134 66.5 126Z" fill="#5A3A28"/><path d="M56.5 129.5 Q60 131.5 63.5 129.5" stroke="#E37B7B" stroke-width="1.6" fill="none"/>'
+           : '<path d="M54.5 126.5 Q60 131 65.5 126.5" stroke="#5A3A28" stroke-width="1.8" fill="none" stroke-linecap="round"/>'}`;
+
+    const h = Math.round(size * 150 / 120);
+    return `<svg viewBox="0 0 120 150" width="${size}" height="${h}" role="img" aria-label="${f.name} ${STAGES[stage].name}${wilted ? ' (시듦)' : ''}">
+      <defs>
+        <filter id="${uid}-dull"><feColorMatrix type="saturate" values="0.35"/></filter>
+        <linearGradient id="${uid}-pot" x1="0" x2="1"><stop offset="0" stop-color="#D98457"/><stop offset="1" stop-color="#C46C42"/></linearGradient>
+      </defs>
+      <ellipse cx="60" cy="144" rx="30" ry="3.5" fill="rgba(60,40,20,.12)"/>
+      <ellipse cx="60" cy="96" rx="32" ry="4.5" fill="#6B4A35"/>
+      <g ${wilted ? `filter="url(#${uid}-dull)" transform="rotate(${stage >= 2 ? 16 : 10} 60 95)"` : ''}>
+        ${wilted && stage >= 2 ? `<g transform="rotate(14 60 ${stage === 2 ? 60 : 50})">${plant}</g>` : plant}
+      </g>
+      <path d="M30 104 h60 l-5.5 36 a4 4 0 0 1 -4 3.4 h-41 a4 4 0 0 1 -4 -3.4z" fill="url(#${uid}-pot)"/>
+      <rect x="25" y="95" width="70" height="12" rx="5" fill="#E08D5F"/>
+      <rect x="25" y="95" width="70" height="4" rx="2" fill="#EBA27A" opacity=".7"/>
+      <ellipse cx="44" cy="126" rx="4.5" ry="2.6" fill="#F2A08E" opacity="${wilted ? .25 : .6}"/>
+      <ellipse cx="76" cy="126" rx="4.5" ry="2.6" fill="#F2A08E" opacity="${wilted ? .25 : .6}"/>
+      ${face}
+    </svg>`;
+  }
+
+  /* ════════════════════════════════════════
+     기록 계산 (F5)
+     ════════════════════════════════════════ */
+
+  // 하루 요약: level = full(모두 챙김) | partial(일부 놓침) | most(대부분 놓침) | progress(진행 중) | future | none(약 없음)
+  function dayStats(key, now = Date.now()) {
+    const r = { key, total: 0, taken: 0, skipped: 0, missed: 0, pending: 0, slots: [] };
+    for (const s of slotsForDate(key)) {
+      const sm = { slot: s.slot, total: 0, done: 0, missed: 0, pending: 0 };
+      for (const m of s.meds) {
+        const st = doseStatus(key, s.slot, m.id, now);
+        sm.total++; r.total++;
+        if (st === 'taken') { r.taken++; sm.done++; }
+        else if (st === 'skipped') { r.skipped++; sm.done++; }
+        else if (st === 'missed') { r.missed++; sm.missed++; }
+        else { r.pending++; sm.pending++; }
+      }
+      sm.status = sm.missed ? 'missed' : sm.pending ? 'pending' : 'done';
+      r.slots.push(sm);
+    }
+    const settled = r.total - r.pending;
+    r.level = !r.total ? 'none'
+      : key > todayKey() ? 'future'
+      : !r.missed && !r.pending ? 'full'
+      : !r.missed ? 'progress'
+      : r.missed / settled >= .5 ? 'most' : 'partial';
+    return r;
+  }
+
+  function monthKeys(y, m) { // m: 1~12
+    const n = new Date(y, m, 0).getDate();
+    return Array.from({ length: n }, (_, i) => `${y}-${pad2(m)}-${pad2(i + 1)}`);
+  }
+
+  // 그 달에 하루 약을 모두 챙긴 날 수 (오늘까지)
+  function completeDaysIn(y, m, now = Date.now()) {
+    const today = todayKey();
+    return monthKeys(y, m).filter(k => k <= today && dayStats(k, now).level === 'full').length;
+  }
+
+  function growth(now = Date.now()) {
+    const today = todayKey();
+    const d = parseDate(today);
+    const y = d.getFullYear(), m = d.getMonth() + 1;
+    const keys = monthKeys(y, m).filter(k => k <= today);
+    const stats = keys.map(k => dayStats(k, now));
+    const complete = stats.filter(s => s.level === 'full').length;
+    const monthMissed = stats.reduce((a, s) => a + s.missed, 0);
+
+    // 연속 완료: 오늘이 끝났으면 오늘부터, 아니면 어제부터 거꾸로
+    let streak = 0;
+    let k = dayStats(today, now).level === 'full' ? today : addDays(today, -1);
+    for (let i = 0; i < 400; i++, k = addDays(k, -1)) {
+      const lv = dayStats(k, now).level;
+      if (lv === 'full') streak++;
+      else if (lv !== 'none') break;  // 약이 없던 날은 건너뜀
+    }
+
+    // 최근 7일 복용률: 먹음 / (먹음 + 건너뜀 + 놓침), 아직 시간이 안 된 약은 빼고
+    let t = 0, all = 0;
+    for (let i = 0; i < 7; i++) {
+      const s = dayStats(addDays(today, -i), now);
+      t += s.taken; all += s.taken + s.skipped + s.missed;
+    }
+    const rate7 = all ? Math.round((t / all) * 100) : null;
+
+    const todayS = dayStats(today, now);
+    const yest = dayStats(addDays(today, -1), now);
+    const wilted = todayS.missed > 0 || yest.missed > 0;
+    const stage = stageIndex(complete);
+
+    return { y, m, complete, stage, streak, rate7, monthMissed, wilted, todayFull: todayS.level === 'full', yestMissed: yest.missed > 0 };
+  }
+
+  /* ── 오늘 화면 식물 카드 ── */
+  function renderPlantCard() {
+    const g = growth();
+    const f = flowerOf(g.m);
+    const st = STAGES[g.stage];
+    const next = STAGES[g.stage + 1];
+    const pct = next ? ((g.complete - st.at) / (next.at - st.at)) * 100 : 100;
+    const josa = (w, a, b) => ((w.charCodeAt(w.length - 1) - 0xAC00) % 28 ? a : b);
+
+    let msg, sad = false;
+    if (!state.meds.length) {
+      msg = `약을 등록하고 하루 약을 모두 챙기면 ${f.name}${josa(f.name, '이', '가')} 자라기 시작해요.`;
+    } else if (g.wilted) {
+      sad = true;
+      msg = g.yestMissed && !g.todayFull
+        ? `어제 놓친 약이 있어서 ${f.name}${josa(f.name, '이', '가')} 조금 시들었어요. 오늘 다 챙기면 다시 기운을 차려요.`
+        : `놓친 약이 있어서 ${f.name}${josa(f.name, '이', '가')} 시무룩해요. 늦게라도 챙기면 괜찮아요.`;
+    } else if (!next) {
+      msg = `${f.name}${josa(f.name, '이', '가')} 활짝 피었어요! 이달 남은 날도 지금처럼 챙겨요.`;
+    } else if (g.todayFull) {
+      msg = `오늘 약을 모두 챙겼어요. ${f.name}${josa(f.name, '이', '가')} 쑥쑥 자라고 있어요 🌱`;
+    } else {
+      msg = `오늘 약을 다 챙기면 ${next.name}까지 ${next.at - g.complete}일 남아요.`;
+    }
+
+    $('#plantBody').innerHTML = `
+      <div class="plant-kicker">${g.m}월의 식물 · <b>${f.name}</b></div>
+      <div class="plant-stage">
+        ${plantSVG({ stage: g.stage, month: g.m, wilted: g.wilted, size: 130 })}
+        <div class="name">${st.name}${g.wilted ? '<span class="wilt">시들했어요</span>' : ''}</div>
+      </div>
+      <div class="plant-next">
+        <span>이달 완료 ${g.complete}일</span>
+        <span>${next ? `${next.name}까지 ${next.at - g.complete}일` : '최고 단계예요'}</span>
+      </div>
+      <div class="progress"><div class="progress-bar" style="width:${Math.min(100, pct)}%"></div></div>
+      <div class="plant-stats">
+        <div><b>${g.streak}일</b><span>연속 완료</span></div>
+        <div><b>${g.rate7 ?? '—'}${g.rate7 == null ? '' : '%'}</b><span>7일 복용률</span></div>
+        <div><b>${g.complete}일</b><span>이달 완료</span></div>
+      </div>
+      <p class="plant-msg ${sad ? 'sad' : ''}">${msg}</p>`;
+  }
+
+  /* ════════════════════════════════════════
+     기록 화면 (F5)
+     ════════════════════════════════════════ */
+
+  let calMonth = null;   // { y, m }
+  let selectedDay = null;
+
+  const STATUS_TEXT = {
+    taken: l => `먹음 ${hhmm(l.at)}`,
+    skipped: () => '건너뜀',
+    snoozed: l => `미룸 ${hhmm(l.snoozeUntil)}`,
+    missed: () => '놓침',
+    overdue: () => '체크 전',
+    now: () => '지금',
+    upcoming: () => '예정',
+  };
+
+  function renderHistory() {
+    const now = Date.now();
+    const today = todayKey();
+    const td = parseDate(today);
+    if (!calMonth) calMonth = { y: td.getFullYear(), m: td.getMonth() + 1 };
+    if (!selectedDay) selectedDay = today;
+
+    // 통계 4개
+    const g = growth(now);
+    $('#histStats').innerHTML = `
+      <div class="card stat ${g.rate7 >= 90 ? 'good' : ''}"><div class="label">최근 7일 복용률</div><div class="value">${g.rate7 ?? '—'}<small>${g.rate7 == null ? '' : '%'}</small></div></div>
+      <div class="card stat"><div class="label">이번 달 완료일</div><div class="value">${g.complete}<small>일</small></div></div>
+      <div class="card stat ${g.streak >= 3 ? 'good' : ''}"><div class="label">연속 완료</div><div class="value">${g.streak}<small>일</small></div></div>
+      <div class="card stat ${g.monthMissed ? 'bad' : ''}"><div class="label">이번 달 놓친 복용</div><div class="value">${g.monthMissed}<small>회</small></div></div>`;
+
+    // 달력
+    const { y, m } = calMonth;
+    $('#calTitle').textContent = `${y}년 ${m}월`;
+    $('#calNext').disabled = y > td.getFullYear() || (y === td.getFullYear() && m >= td.getMonth() + 1);
+    const lead = new Date(y, m - 1, 1).getDay();
+    let cells = '<div class="cal-day blank"></div>'.repeat(lead);
+    for (const k of monthKeys(y, m)) {
+      const ds = dayStats(k, now);
+      const bars = SLOTS.map(sl => {
+        const sm = ds.slots.find(x => x.slot === sl.id);
+        return `<i class="${!sm || ds.level === 'future' ? '' : sm.status}"></i>`;
+      }).join('');
+      const cls = ['cal-day', `lv-${ds.level}`, ds.level, k === today ? 'today' : '', k === selectedDay ? 'selected' : ''].join(' ');
+      cells += `<button class="${cls}" data-key="${k}" aria-label="${k}"><span class="num">${Number(k.slice(8))}</span><span class="bars">${bars}</span></button>`;
+    }
+    $('#calGrid').innerHTML = cells;
+
+    renderDayDetail(selectedDay, now);
+    renderGarden(now);
+  }
+
+  function renderDayDetail(key, now) {
+    const d = parseDate(key);
+    const ds = dayStats(key, now);
+    const slots = slotsForDate(key);
+    const sum = !ds.total ? '먹을 약이 없었어요.'
+      : ds.level === 'future' ? `${ds.total}개 먹을 예정이에요.`
+      : `${ds.total}개 중 ${ds.taken}개 먹음${ds.skipped ? ` · ${ds.skipped}개 건너뜀` : ''}${ds.missed ? ` · ${ds.missed}개 놓침` : ''}`;
+
+    $('#dayDetail').innerHTML = `
+      <h2>${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAYS[d.getDay()]})</h2>
+      <p class="day-sum">${sum}</p>
+      ${slots.map(s => `
+        <div class="day-slot">
+          <div class="day-slot-head">${s.label} · ${s.time}</div>
+          ${s.meds.map(md => {
+            const st = doseStatus(key, s.slot, md.id, now);
+            const log = getLog(key, s.slot, md.id);
+            return `<div class="day-med">
+              ${medThumb(md, 32)}
+              <span class="nm">${esc(md.name)} <span class="med-dose">${esc(md.dose)}</span></span>
+              <span class="st ${st}">${STATUS_TEXT[st](log)}</span>
+            </div>`;
+          }).join('')}
+        </div>`).join('')}`;
+  }
+
+  function renderGarden(now) {
+    const td = parseDate(todayKey());
+    const y = td.getFullYear(), m = td.getMonth() + 1;
+    const wiltedNow = growth(now).wilted;
+    const months = [-2, -1, 0].map(off => {
+      const d = new Date(y, m - 1 + off, 1);
+      return { y: d.getFullYear(), m: d.getMonth() + 1, current: off === 0 };
+    });
+    $('#garden').innerHTML = months.map(mo => {
+      const days = completeDaysIn(mo.y, mo.m, now);
+      const stage = stageIndex(days);
+      const f = flowerOf(mo.m);
+      const wilted = mo.current && wiltedNow;
+      return `<div class="garden-pot ${mo.current ? 'current' : ''}">
+        ${mo.current ? '<span class="tag">키우는 중</span>' : ''}
+        ${plantSVG({ stage, month: mo.m, wilted, size: 104 })}
+        <div class="m">${mo.m}월 · ${f.name}</div>
+        <div class="d">${STAGES[stage].name} · 완료 ${days}일</div>
+      </div>`;
+    }).join('');
+  }
+
+  $('#calPrev').addEventListener('click', () => {
+    const d = new Date(calMonth.y, calMonth.m - 2, 1);
+    calMonth = { y: d.getFullYear(), m: d.getMonth() + 1 };
+    renderHistory();
+  });
+  $('#calNext').addEventListener('click', () => {
+    const d = new Date(calMonth.y, calMonth.m, 1);
+    calMonth = { y: d.getFullYear(), m: d.getMonth() + 1 };
+    renderHistory();
+  });
+  $('#calGrid').addEventListener('click', e => {
+    const b = e.target.closest('[data-key]');
+    if (!b) return;
+    selectedDay = b.dataset.key;
+    $('#calGrid').querySelectorAll('.cal-day').forEach(x => x.classList.toggle('selected', x === b));
+    renderDayDetail(selectedDay, Date.now());
+    if (window.innerWidth <= 1000) $('#dayDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  /* ════════════════════════════════════════
+     설정
+     ════════════════════════════════════════
+     바꾼 값은 바로 저장하고, 다른 화면은 열 때 새 값으로 다시 그린다.
+  */
+
+  const REMIND_OPTIONS = [15, 30, 45];
+  const MISS_OPTIONS = [30, 60, 120];
+
+  function renderPrefs() {
+    renderSlotTimes();
+    renderPcAlert();
+    renderEmailCard();
+    renderDataCard();
+  }
+
+  function renderSlotTimes() {
+    const t = state.settings.slotTimes;
+    $('#slotTimesCard').innerHTML = `
+      <h2 class="card-title">복용 시간대</h2>
+      <p class="pref-desc">시간대마다 알림이 오는 시각이에요. 바꾸면 오늘 화면과 알림에 바로 반영돼요.</p>
+      <div class="time-grid">
+        ${SLOTS.map(s => `
+          <div class="time-field">
+            <label for="time-${s.id}">${s.label}</label>
+            <input class="input" type="time" id="time-${s.id}" data-slot="${s.id}" value="${t[s.id]}" required>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  function renderPcAlert() {
+    const st = state.settings;
+    const p = permission();
+    const permText = {
+      granted: ['on', '브라우저에서 허용됨'],
+      default: ['', '아직 허용하지 않았어요 — 켜면 허용 창이 떠요'],
+      denied: ['blocked', '브라우저에서 차단됨 — 주소창 왼쪽 자물쇠 → 알림 → 허용'],
+      unsupported: ['blocked', '이 브라우저는 알림을 지원하지 않아요 — 화면 안 카드로 알려요'],
+    }[p];
+    const on = st.notifyEnabled && p === 'granted';
+    const chips = (opts, cur, attr, label) => opts.map(n =>
+      `<button type="button" class="pick-chip ${cur === n ? 'active' : ''}" data-${attr}="${n}">${label(n)}</button>`).join('');
+
+    $('#pcAlertCard').innerHTML = `
+      <div class="pref-head">
+        <h2 class="card-title"><span class="pc-only">PC </span>알림</h2>
+      </div>
+      <div class="pref-block pc-only">
+        <div class="pref-row">
+          <div>
+            <div class="field-label" style="margin:0">브라우저 알림 켜기</div>
+            <div class="perm-line ${permText[0]}">${permText[1]}</div>
+          </div>
+          <label class="switch" aria-label="브라우저 알림 켜기"><input type="checkbox" id="pcNotify" ${on ? 'checked' : ''} ${p === 'unsupported' ? 'disabled' : ''}><span></span></label>
+        </div>
+      </div>
+      <div class="pref-block">
+        <span class="field-label">재알림</span>
+        <div class="pick-chips">${chips(REMIND_OPTIONS, st.remindAfterMin, 'remind', n => `${n}분`)}</div>
+        <div class="field-hint">시각이 지나도 체크가 없으면 이만큼 뒤에 한 번 더 알려요.</div>
+      </div>
+      <div class="pref-block">
+        <span class="field-label">놓침 기록</span>
+        <div class="pick-chips">${chips(MISS_OPTIONS, st.missAfterMin, 'miss', n => durationText(n))}</div>
+        <div class="field-hint">이 시간이 지나도 체크가 없으면 기록에 '놓침'으로 남겨요.</div>
+        ${skippedStagesNote(st)}
+      </div>
+      <div class="pref-block">
+        <button class="btn btn-ghost" data-act="preview" style="width:100%">알림 미리보기</button>
+        <p class="alert-note pc-only">알림은 약싹 탭이 열려 있을 때 와요. 탭을 우클릭해 고정해 두면 실수로 닫히지 않아요.</p>
+        <p class="alert-note os-note pc-only" style="margin-bottom:0">허용했는데도 알림이 안 뜨면 Windows <b>설정 → 시스템 → 알림</b>에서 브라우저 알림이 켜져 있는지, 방해 금지가 꺼져 있는지 확인해 주세요.</p>
+        <p class="alert-note mobile-only" style="margin-bottom:0">휴대폰에서는 약싹을 열어 둔 동안 화면 안 알림 카드로 알려 드려요.</p>
+      </div>`;
+  }
+
+  // 놓침이 재알림·이메일보다 먼저 오면 그 단계는 보내지 않음 (checkReminders가 놓침 전까지만 보냄)
+  function skippedStagesNote(st) {
+    const skipped = [];
+    if (st.remindAfterMin >= st.missAfterMin) skipped.push(`재알림(${st.remindAfterMin}분)`);
+    if (st.email.enabled && st.email.sendAfterMin >= st.missAfterMin) skipped.push(`이메일(${st.email.sendAfterMin}분)`);
+    return skipped.length
+      ? `<div class="field-hint warn-hint">놓침 기록이 ${durationText(st.missAfterMin)}이라 ${skipped.join('·')}은 보내지 않아요.</div>`
+      : '';
+  }
+
+  function renderDataCard() {
+    $('#dataCard').innerHTML = `
+      <h2 class="card-title">데이터</h2>
+      <p class="pref-desc">${storage.available
+        ? '모든 정보는 이 브라우저에만 저장돼요. 다른 기기와는 연결되지 않아요.'
+        : '이 브라우저에서는 저장소를 쓸 수 없어서, 창을 닫으면 입력한 내용이 사라져요.'}</p>
+      <div class="data-actions">
+        <button class="btn btn-ghost" data-act="sample">예시 데이터로 다시 채우기</button>
+        <button class="btn btn-outline-danger" data-act="clear">모두 지우기</button>
+      </div>`;
+  }
+
+  // 데이터를 통째로 바꾼 뒤 화면 상태 초기화
+  function afterDataReset() {
+    calMonth = null;
+    selectedDay = null;
+    medsTab = 'active';
+    pickedSlot = null;
+    openSnooze = null;
+    for (const id of [...alertCards.keys()]) removeAlertCard(id);
+    document.title = DEFAULT_TITLE;
+    renderPrefs();
+  }
+
+  $('#slotTimesCard').addEventListener('change', e => {
+    const input = e.target.closest('input[type="time"]');
+    if (!input) return;
+    const slot = input.dataset.slot;
+    if (!/^\d{2}:\d{2}$/.test(input.value)) { input.value = state.settings.slotTimes[slot]; return; }
+    state.settings.slotTimes[slot] = input.value;
+    save();
+    toast(`${slotLabel(slot)} 시각을 ${input.value}로 바꿨어요`);
+    checkReminders();
+  });
+
+  $('#pcAlertCard').addEventListener('change', async e => {
+    if (e.target.id !== 'pcNotify') return;
+    if (e.target.checked) {
+      state.settings.notifyEnabled = true;
+      save();
+      if (permission() === 'default') await requestPermission();
+      else if (permission() === 'denied') toast('브라우저에서 알림이 차단돼 있어요. 주소창 자물쇠에서 허용해 주세요', 3600);
+      else toast('브라우저 알림을 켰어요');
+    } else {
+      state.settings.notifyEnabled = false;
+      save();
+      toast('브라우저 알림을 껐어요. 화면 안 알림 카드는 계속 떠요');
+    }
+    renderPcAlert();
+  });
+
+  $('#pcAlertCard').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.remind) state.settings.remindAfterMin = Number(b.dataset.remind);
+    else if (b.dataset.miss) state.settings.missAfterMin = Number(b.dataset.miss);
+    else if (b.dataset.act === 'preview') { previewNotice(); return; }
+    else return;
+    save();
+    renderPcAlert();
+    checkReminders();
+  });
+
+  $('#dataCard').addEventListener('click', async e => {
+    const act = e.target.closest('[data-act]')?.dataset.act;
+    if (act === 'sample') {
+      const ok = await confirmModal({
+        title: '예시 데이터로 다시 채울까요?',
+        message: '지금 등록한 약과 복용 기록, 설정이 모두 예시 데이터로 바뀌어요. 되돌릴 수 없어요.',
+        confirmLabel: '다시 채우기',
+      });
+      if (!ok) return;
+      resetToSample();
+      afterDataReset();
+      toast('예시 데이터로 다시 채웠어요');
+    }
+    if (act === 'clear') {
+      const ok = await confirmModal({
+        title: '모두 지울까요?',
+        message: '등록한 약, 복용 기록, 이메일 발송 기록, 설정이 모두 지워지고 처음 상태로 돌아가요. <b>되돌릴 수 없어요.</b>',
+        confirmLabel: '모두 지우기',
+        danger: true,
+      });
+      if (!ok) return;
+      resetToEmpty();
+      afterDataReset();
+      toast('모든 데이터를 지웠어요');
+    }
+  });
+
+  // 안내 영상: 파일이 있으면 자리 표시를 걷어 냄
+  $('#guideVideo').addEventListener('loadedmetadata', () => { $('#videoEmpty').hidden = true; });
+
+  /* ════════════════════════════════════════
+     내 약 카드 (F6)
+     ════════════════════════════════════════ */
+
+  function medCardData() {
+    const today = todayKey();
+    const active = state.meds.filter(m => medCategory(m, today) === 'active');
+    const paused = state.meds.filter(m => medCategory(m, today) === 'paused');
+    const slotsText = m => SLOTS.filter(s => m.slots.includes(s.id)).map(s => s.label).join(' · ');
+    const period = m => {
+      if (m.startDate > today) return `${md(m.startDate)}부터 시작${m.endDate ? ` ~ ${md(m.endDate)}` : ''}`;
+      if (!m.endDate) return `계속 복용 (${md(m.startDate)}부터)`;
+      const left = daysBetween(today, m.endDate);
+      return `${md(m.startDate)} ~ ${md(m.endDate)} · ${left === 0 ? '오늘까지' : `${left}일 남음`}`;
+    };
+    const d = parseDate(today);
+    const dateText = `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`;
+    return { active, paused, slotsText, period, dateText };
+  }
+
+  function renderMedCard() {
+    const { active, paused, slotsText, period, dateText } = medCardData();
+    const big = state.settings.cardBig;
+    const thumb = big ? 120 : 88;
+
+    const row = (m, isPaused) => `
+      <div class="mc-row ${isPaused ? 'paused' : ''}">
+        <div class="mc-photo" style="width:${thumb}px">
+          ${medThumb(m, thumb)}
+          <div class="mc-photo-btns">
+            <button class="btn btn-ghost btn-sm" data-photo="${m.id}">${m.photo ? '바꾸기' : '사진 올리기'}</button>
+            ${m.photo ? `<button class="btn btn-text-danger btn-sm" data-photo-del="${m.id}">지우기</button>` : ''}
+          </div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-name">${esc(m.name)}<span class="med-dose">${esc(m.dose)}</span></div>
+          ${m.memo ? `<div class="mc-memo">${esc(m.memo)}</div>` : ''}
+        </div>
+        <div class="mc-when">
+          <div class="mc-slots">${slotsText(m)}</div>
+          <div class="mc-period">${isPaused
+            ? `<span class="mc-paused-tag">${m.pausedDate ? `${md(m.pausedDate)}부터 ` : ''}중단 중</span>`
+            : period(m)}</div>
+        </div>
+      </div>`;
+
+    $('#mcBig').setAttribute('aria-pressed', String(big));
+    const card = $('#medCard');
+    card.classList.toggle('big', big);
+    card.innerHTML = `
+      <div class="mc-head">
+        <svg width="${big ? 52 : 44}" height="${big ? 52 : 44}"><use href="#logo"/></svg>
+        <div>
+          <h2>내 약 카드</h2>
+          <div class="sub">복용 중인 약 ${active.length}개${paused.length ? ` · 일시 중단 ${paused.length}개` : ''}</div>
+        </div>
+        <div class="date"><b>${dateText}</b>기준</div>
+      </div>
+      ${active.length ? active.map(m => row(m, false)).join('') : '<div class="mc-empty">복용 중인 약이 없어요.</div>'}
+      ${paused.length ? `<div class="mc-section">일시 중단 중</div>${paused.map(m => row(m, true)).join('')}` : ''}
+      <div class="mc-foot">※ 복용 방법과 병용 여부는 의사·약사의 판단을 따르세요.</div>`;
+  }
+
+  // 문자·메신저로 보낼 수 있는 글
+  function medCardText() {
+    const { active, paused, slotsText, period, dateText } = medCardData();
+    const lines = [`[내 약 카드] ${dateText} 기준`, `복용 중인 약 ${active.length}개`, ''];
+    active.forEach((m, i) => {
+      lines.push(`${i + 1}. ${m.name} ${m.dose}`.trim());
+      lines.push(`   - ${slotsText(m)} / ${period(m)}`);
+      if (m.memo) lines.push(`   - ${m.memo}`);
+    });
+    if (paused.length) {
+      lines.push('', '일시 중단 중');
+      paused.forEach(m => lines.push(`- ${m.name} ${m.dose}`.trim() + ` (${m.pausedDate ? `${md(m.pausedDate)}부터 ` : ''}중단)` + (m.memo ? ` - ${m.memo}` : '')));
+    }
+    lines.push('', '※ 복용 방법과 병용 여부는 의사·약사의 판단을 따르세요.');
+    return lines.join('\n');
+  }
+
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // clipboard API를 못 쓰는 환경(file:// 등) 대비
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch { ok = false; }
+      ta.remove();
+      return ok;
+    }
+  }
+
+  $('#mcBig').addEventListener('click', () => {
+    state.settings.cardBig = !state.settings.cardBig;
+    save();
+    renderMedCard();
+  });
+  $('#mcCopy').addEventListener('click', async () => {
+    const ok = await copyText(medCardText());
+    toast(ok ? '글로 복사했어요. 문자나 메신저에 붙여 넣어 보세요' : '복사하지 못했어요. 다시 시도해 주세요');
+  });
+  $('#mcPrint').addEventListener('click', () => window.print());
+
+  // 약 사진: 내 약 카드에서만 올리고 바꿈 (긴 변 360px로 줄여 저장)
+  let photoTarget = null;
+  $('#medCard').addEventListener('click', async e => {
+    const up = e.target.closest('[data-photo]');
+    const del = e.target.closest('[data-photo-del]');
+    if (up) {
+      photoTarget = up.dataset.photo;
+      $('#mcPhotoInput').click();
+    }
+    if (del) {
+      const med = state.meds.find(m => m.id === del.dataset.photoDel);
+      if (!med) return;
+      const ok = await confirmModal({ title: '사진을 지울까요?', message: `<b>${esc(med.name)}</b> 사진을 지우면 고른 아이콘으로 돌아가요.`, confirmLabel: '지우기', danger: true });
+      if (!ok) return;
+      med.photo = null;
+      save(); renderMedCard();
+    }
+  });
+  $('#mcPhotoInput').addEventListener('change', async e => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    const med = state.meds.find(m => m.id === photoTarget);
+    if (!file || !med) return;
+    try {
+      med.photo = await resizeImage(file);
+      save(); renderMedCard();
+      toast(`${med.name} 사진을 올렸어요`);
+    } catch {
+      toast('이 사진은 열 수 없어요. JPG나 PNG 사진으로 다시 골라 주세요', 3600);
+    }
+  });
+
+  /* ════════════════════════════════════════
+     내 약 (F1)
+     ════════════════════════════════════════ */
+
+  const MED_TABS = [
+    { id: 'active', label: '복용 중' },
+    { id: 'paused', label: '일시 중단' },
+    { id: 'ended',  label: '종료' },
+  ];
+  let medsTab = 'active';
+
+  function medCategory(med, today = todayKey()) {
+    if (med.endDate && med.endDate < today) return 'ended';
+    if (med.paused) return 'paused';
+    return 'active';
+  }
+
+  function periodText(med, today = todayKey()) {
+    const cat = medCategory(med, today);
+    if (cat === 'ended') return `${md(med.startDate)} ~ ${md(med.endDate)} · <b>종료</b>`;
+    if (med.startDate > today) {
+      const range = med.endDate ? `${md(med.startDate)} ~ ${md(med.endDate)}` : `${md(med.startDate)}부터 계속`;
+      return `${range} · <b>${daysBetween(today, med.startDate)}일 뒤 시작</b>`;
+    }
+    if (!med.endDate) return `<b>계속 복용</b> · ${md(med.startDate)}부터`;
+    const left = daysBetween(today, med.endDate);
+    return `${md(med.startDate)} ~ ${md(med.endDate)} · <b>${left === 0 ? '오늘까지' : `${left}일 남음`}</b>`;
+  }
+
+  function renderMeds() {
+    const today = todayKey();
+    const counts = { active: 0, paused: 0, ended: 0 };
+    state.meds.forEach(m => counts[medCategory(m, today)]++);
+
+    $('#medsTabs').innerHTML = MED_TABS.map(t =>
+      `<button role="tab" data-tab="${t.id}" class="${t.id === medsTab ? 'active' : ''}">${t.label}<span class="n">${counts[t.id]}</span></button>`
+    ).join('');
+
+    const list = state.meds.filter(m => medCategory(m, today) === medsTab);
+    if (!list.length) {
+      const msg = { active: '복용 중인 약이 없어요. [+ 약 추가]로 등록해 보세요.', paused: '일시 중단한 약이 없어요.', ended: '복용을 마친 약이 없어요.' }[medsTab];
+      $('#medList').innerHTML = `<div class="card empty">${msg}</div>`;
+      return;
+    }
+
+    $('#medList').innerHTML = list.map(m => {
+      const cat = medCategory(m, today);
+      const chips = SLOTS.filter(s => m.slots.includes(s.id))
+        .map(s => `<span class="chip">${s.label}<span class="t">${state.settings.slotTimes[s.id]}</span></span>`).join('');
+      const badge = cat === 'paused'
+        ? `<span class="badge badge-warn">${m.pausedDate ? `${md(m.pausedDate)}부터 ` : ''}중단 중</span>`
+        : cat === 'ended' ? '<span class="badge badge-muted">종료</span>' : '';
+      const toggle = cat === 'ended' ? '' : m.paused
+        ? `<button class="btn btn-ghost btn-sm" data-act="resume" data-id="${m.id}">다시 복용</button>`
+        : `<button class="btn btn-ghost btn-sm" data-act="pause" data-id="${m.id}">일시 중단</button>`;
+      return `
+        <article class="card med-card ${cat !== 'active' ? 'dim' : ''}">
+          <div class="med-top">
+            ${medThumb(m, 72)}
+            <div class="med-info">
+              <div class="med-name">${esc(m.name)} <span class="med-dose">${esc(m.dose)}</span> ${badge}</div>
+              <div class="med-chips">${chips}</div>
+              <div class="med-period">${periodText(m, today)}</div>
+            </div>
+          </div>
+          ${m.memo ? `<div class="med-memo">${esc(m.memo)}</div>` : ''}
+          <div class="med-actions">
+            <button class="btn btn-ghost btn-sm" data-act="edit" data-id="${m.id}">수정</button>
+            ${toggle}
+            <button class="btn btn-text-danger btn-sm" data-act="delete" data-id="${m.id}">삭제</button>
+          </div>
+        </article>`;
+    }).join('');
+  }
+
+  $('#medsTabs').addEventListener('click', e => {
+    const tab = e.target.closest('[data-tab]')?.dataset.tab;
+    if (!tab) return;
+    medsTab = tab;
+    renderMeds();
+  });
+
+  $('#addMedBtn').addEventListener('click', () => openMedForm(null));
+
+  $('#medList').addEventListener('click', async e => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const med = state.meds.find(m => m.id === btn.dataset.id);
+    if (!med) return;
+
+    if (btn.dataset.act === 'edit') openMedForm(med);
+    if (btn.dataset.act === 'pause') {
+      med.paused = true;
+      med.pausedDate = todayKey();
+      save(); renderMeds();
+    }
+    if (btn.dataset.act === 'resume') {
+      med.paused = false;
+      med.pausedDate = null;
+      save(); renderMeds();
+    }
+    if (btn.dataset.act === 'delete') {
+      const ok = await confirmModal({
+        title: '약을 삭제할까요?',
+        message: `<b>${esc(med.name)}</b>을(를) 목록에서 지워요. 지금까지의 복용 기록도 함께 사라지고, 되돌릴 수 없어요.<br>잠시 쉬는 거라면 [일시 중단]을 써 보세요.`,
+        confirmLabel: '삭제',
+        danger: true,
+      });
+      if (!ok) return;
+      state.meds = state.meds.filter(m => m.id !== med.id);
+      for (const day of Object.values(state.logs))
+        for (const slot of Object.values(day)) delete slot[med.id];
+      save(); renderMeds();
+    }
+  });
+
+  /* ── 사진: 긴 변 360px로 줄여 저장 ── */
+  function resizeImage(file, max = 360) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = Math.round(img.naturalWidth * scale);
+        const h = Math.round(img.naturalHeight * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image')); };
+      img.src = url;
+    });
+  }
+
+  /* ── 약 추가·수정 모달 ── */
+  function openMedForm(med) {
+    const isNew = !med;
+    const today = todayKey();
+    const draft = med
+      ? { ...med, slots: [...med.slots] }
+      : { name: '', dose: '', photo: null, shape: 'tablet', color: MED_COLORS[0], memo: '', slots: [], startDate: today, endDate: null };
+    draft.shape ||= 'capsule';
+
+    // 1회 용량: '2정' → 숫자 2 + 단위 '정', 형식이 다르면 직접 입력
+    const doseMatch = /^\s*(\d+(?:\.\d+)?)\s*(정|캡슐|포|알|mL)\s*$/.exec(draft.dose || '');
+    const dose = doseMatch
+      ? { n: Number(doseMatch[1]), unit: doseMatch[2], custom: false, text: '' }
+      : draft.dose
+        ? { n: 1, unit: MED_SHAPES.find(x => x.id === draft.shape).unit, custom: true, text: draft.dose }
+        : { n: 1, unit: MED_SHAPES.find(x => x.id === draft.shape).unit, custom: false, text: '' };
+    let unitTouched = !isNew; // 새 약은 모양을 바꾸면 단위도 따라감
+
+    const el = openModal(`
+      <div class="modal-head"><h2>${isNew ? '약 추가' : '약 수정'}</h2></div>
+      <form class="modal-body" id="medForm" novalidate>
+        <div class="field">
+          <span class="field-label">아이콘</span>
+          <div class="photo-pick">
+            <div id="fThumb"></div>
+            <div class="photo-pick-side">
+              <div class="shape-chips" id="fShapes">
+                ${MED_SHAPES.map(sh => `<button type="button" class="shape-chip" data-shape="${sh.id}" aria-label="${sh.label}">
+                  <span class="ic" data-ic="${sh.id}"></span>${sh.label}</button>`).join('')}
+              </div>
+              <div class="swatches" id="fColors">
+                ${MED_COLORS.map(c => `<button type="button" class="swatch" data-color="${c}" style="background:${c}" aria-label="색상 ${c}"></button>`).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="field-hint">${draft.photo
+            ? '내 약 카드에 올린 사진이 있어서, 다른 화면에는 사진이 먼저 보여요.'
+            : '실제 약 사진은 <b>내 약 카드</b>에서 올릴 수 있어요. 사진이 있으면 알림에도 사진이 떠요.'}</div>
+        </div>
+
+        <div class="field">
+          <label for="fName">약 이름<span class="req">*</span></label>
+          <input class="input" id="fName" maxlength="40" placeholder="예: 처방약" value="${esc(draft.name)}">
+          <div class="field-error" id="fNameErr"></div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">1회 용량</span>
+          <div class="dose-pick">
+            <div class="stepper" id="fDoseStep">
+              <button type="button" data-step="-1" aria-label="줄이기">−</button>
+              <input id="fDoseN" inputmode="decimal" aria-label="개수" value="${dose.n}">
+              <button type="button" data-step="1" aria-label="늘리기">+</button>
+            </div>
+            <div class="pick-chips" id="fUnits">
+              ${DOSE_UNITS.map(u => `<button type="button" class="pick-chip" data-unit="${u}">${u}</button>`).join('')}
+              <button type="button" class="pick-chip" data-unit="custom">직접 입력</button>
+            </div>
+          </div>
+          <input class="input" id="fDose" maxlength="20" placeholder="예: 반 정, 1스푼, 2방울" value="${esc(dose.text)}" style="margin-top:10px">
+          <div class="field-hint" id="fDoseOut"></div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">먹는 시간대<span class="req">*</span></span>
+          <div class="pick-chips" id="fSlots">
+            ${SLOTS.map(s => `<button type="button" class="pick-chip" data-slot="${s.id}">${s.label}<span class="t">${state.settings.slotTimes[s.id]}</span></button>`).join('')}
+          </div>
+          <div class="field-hint">여러 개를 고를 수 있어요. 시각은 설정에서 바꿔요.</div>
+          <div class="field-error" id="fSlotsErr"></div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">복용 기간</span>
+          <div class="date-row">
+            <div><div class="sub">시작일</div><input type="date" class="input" id="fStart" value="${draft.startDate}"></div>
+            <div><div class="sub">종료일 (비우면 계속)</div><input type="date" class="input" id="fEnd" value="${draft.endDate || ''}"></div>
+          </div>
+          <div class="quick-days" id="fQuick">
+            ${[3, 5, 7, 14].map(n => `<button type="button" class="pick-chip" data-days="${n}">${n}일치</button>`).join('')}
+            <button type="button" class="pick-chip" data-days="0">계속</button>
+          </div>
+          <div class="field-error" id="fDateErr"></div>
+        </div>
+
+        <div class="field">
+          <label for="fMemo">복용 안내 메모</label>
+          <textarea class="input" id="fMemo" maxlength="200" placeholder="예: 식후 30분, 물 많이 마시기">${esc(draft.memo)}</textarea>
+          <div class="field-hint">의사·약사에게 받은 안내를 그대로 적어 두세요. 약싹은 복용법을 판단하지 않아요.</div>
+        </div>
+      </form>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" data-act="cancel">취소</button>
+        <button class="btn btn-primary" data-act="save">${isNew ? '추가' : '저장'}</button>
+      </div>`, { closeOnBackdrop: false });
+
+    const f = id => $('#' + id, el);
+
+    // 미리보기는 사진이 있어도 아이콘을 보여 줌 (여기서 고르는 건 아이콘이므로)
+    function paintIcon() {
+      f('fThumb').innerHTML = medThumb({ ...draft, photo: null }, 88);
+      f('fShapes').querySelectorAll('[data-shape]').forEach(b => {
+        b.classList.toggle('active', b.dataset.shape === draft.shape);
+        b.querySelector('.ic').innerHTML = `<img src="${medArtURL({ shape: b.dataset.shape, color: draft.color })}" alt="">`;
+      });
+      f('fColors').querySelectorAll('.swatch').forEach(b => b.classList.toggle('active', b.dataset.color === draft.color));
+    }
+
+    const doseText = () => dose.custom ? f('fDose').value.trim() : `${dose.n}${dose.unit}`;
+    function paintDose() {
+      f('fDoseStep').classList.toggle('off', dose.custom);
+      f('fDoseN').value = dose.n;
+      f('fUnits').querySelectorAll('[data-unit]').forEach(b =>
+        b.classList.toggle('active', dose.custom ? b.dataset.unit === 'custom' : b.dataset.unit === dose.unit));
+      f('fDose').hidden = !dose.custom;
+      const t = doseText();
+      f('fDoseOut').innerHTML = t ? `한 번에 <b>${esc(t)}</b> 먹어요` : '용량을 적어 주세요 (비워 둬도 돼요)';
+    }
+
+    function paintSlots() {
+      f('fSlots').querySelectorAll('[data-slot]').forEach(b => b.classList.toggle('active', draft.slots.includes(b.dataset.slot)));
+    }
+
+    function paintQuick() {
+      const start = f('fStart').value, end = f('fEnd').value;
+      const n = !end ? 0 : start ? daysBetween(start, end) + 1 : -1;
+      f('fQuick').querySelectorAll('[data-days]').forEach(b => b.classList.toggle('active', Number(b.dataset.days) === n));
+    }
+
+    paintIcon(); paintDose(); paintSlots(); paintQuick();
+
+    f('fShapes').addEventListener('click', e => {
+      const sh = e.target.closest('[data-shape]')?.dataset.shape;
+      if (!sh) return;
+      draft.shape = sh;
+      if (!unitTouched && !dose.custom) dose.unit = MED_SHAPES.find(x => x.id === sh).unit;
+      paintIcon(); paintDose();
+    });
+    f('fColors').addEventListener('click', e => {
+      const c = e.target.closest('[data-color]')?.dataset.color;
+      if (!c) return;
+      draft.color = c;
+      paintIcon();
+    });
+
+    f('fDoseStep').addEventListener('click', e => {
+      const b = e.target.closest('[data-step]');
+      if (!b) return;
+      const step = dose.unit === 'mL' ? 5 : 1;
+      dose.n = Math.max(1, Math.min(999, Math.round((dose.n + Number(b.dataset.step) * step) * 10) / 10));
+      paintDose();
+    });
+    f('fDoseN').addEventListener('change', () => {
+      const v = Number(f('fDoseN').value.replace(',', '.'));
+      dose.n = v > 0 && v <= 999 ? Math.round(v * 10) / 10 : dose.n;
+      paintDose();
+    });
+    f('fUnits').addEventListener('click', e => {
+      const u = e.target.closest('[data-unit]')?.dataset.unit;
+      if (!u) return;
+      unitTouched = true;
+      if (u === 'custom') {
+        dose.custom = true;
+        if (!f('fDose').value.trim()) f('fDose').value = `${dose.n}${dose.unit}`;
+        paintDose();
+        f('fDose').focus();
+      } else {
+        dose.custom = false;
+        dose.unit = u;
+        paintDose();
+      }
+    });
+    f('fDose').addEventListener('input', paintDose);
+
+    f('fSlots').addEventListener('click', e => {
+      const id = e.target.closest('[data-slot]')?.dataset.slot;
+      if (!id) return;
+      draft.slots = draft.slots.includes(id) ? draft.slots.filter(s => s !== id) : [...draft.slots, id];
+      paintSlots();
+      if (draft.slots.length) { f('fSlots').classList.remove('invalid'); f('fSlotsErr').textContent = ''; }
+    });
+
+    f('fQuick').addEventListener('click', e => {
+      const b = e.target.closest('[data-days]');
+      if (!b) return;
+      const n = Number(b.dataset.days);
+      if (!f('fStart').value) f('fStart').value = today;
+      f('fEnd').value = n ? addDays(f('fStart').value, n - 1) : '';
+      f('fDateErr').textContent = '';
+      paintQuick();
+    });
+    f('fStart').addEventListener('change', paintQuick);
+    f('fEnd').addEventListener('change', paintQuick);
+
+    f('fName').addEventListener('input', () => {
+      if (f('fName').value.trim()) { f('fName').classList.remove('invalid'); f('fNameErr').textContent = ''; }
+    });
+
+    function submit() {
+      const name = f('fName').value.trim();
+      const start = f('fStart').value || today;
+      const end = f('fEnd').value || null;
+      let firstBad = null;
+
+      f('fNameErr').textContent = name ? '' : '약 이름을 적어 주세요.';
+      f('fName').classList.toggle('invalid', !name);
+      if (!name) firstBad ||= f('fName');
+
+      f('fSlotsErr').textContent = draft.slots.length ? '' : '먹는 시간대를 하나 이상 골라 주세요.';
+      f('fSlots').classList.toggle('invalid', !draft.slots.length);
+      if (!draft.slots.length) firstBad ||= f('fSlots');
+
+      const badDate = end && end < start;
+      f('fDateErr').textContent = badDate ? '종료일이 시작일보다 빨라요.' : '';
+      if (badDate) firstBad ||= f('fEnd');
+
+      if (firstBad) {
+        firstBad.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        if (firstBad.focus) firstBad.focus({ preventScroll: true });
+        return;
+      }
+
+      const data = {
+        name,
+        dose: doseText(),
+        shape: draft.shape,
+        color: draft.color,
+        memo: f('fMemo').value.trim(),
+        slots: SLOTS.map(s => s.id).filter(id => draft.slots.includes(id)),
+        startDate: start,
+        endDate: end,
+      };
+
+      if (isNew) {
+        state.meds.push({ id: 'm-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), ...data, paused: false, pausedDate: null });
+      } else {
+        Object.assign(med, data);
+      }
+      save();
+      closeModal();
+
+      // 저장한 약이 보이는 탭으로 이동
+      const saved = isNew ? state.meds[state.meds.length - 1] : med;
+      medsTab = medCategory(saved);
+      renderMeds();
+    }
+
+    el.addEventListener('click', e => {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act === 'cancel') closeModal();
+      if (act === 'save') submit();
+    });
+    f('medForm').addEventListener('submit', e => { e.preventDefault(); submit(); });
+    if (isNew) f('fName').focus();
+  }
+
+  /* ════════════════════════════════════════
+     화면 전환
+     ════════════════════════════════════════ */
+
+  const ROUTES = [
+    { id: 'today',   label: '오늘',      icon: 'i-today' },
+    { id: 'meds',    label: '내 약',     icon: 'i-meds' },
+    { id: 'history', label: '기록',      icon: 'i-history' },
+    { id: 'card',    label: '내 약 카드', icon: 'i-card' },
+    { id: 'prefs',   label: '설정',      icon: 'i-prefs' },
+  ];
+
+  function navLinks() {
+    return ROUTES.map(r =>
+      `<a href="#${r.id}" data-route="${r.id}"><svg><use href="#${r.icon}"/></svg><span>${r.label}</span></a>`
+    ).join('');
+  }
+
+  document.getElementById('sideNav').innerHTML = navLinks();
+  document.getElementById('tabBar').innerHTML = navLinks();
+
+  function currentRoute() {
+    const id = location.hash.slice(1);
+    return ROUTES.some(r => r.id === id) ? id : 'today';
+  }
+
+  function render() {
+    const route = currentRoute();
+    document.querySelectorAll('.screen').forEach(el => {
+      el.classList.toggle('active', el.id === `screen-${route}`);
+    });
+    document.querySelectorAll('[data-route]').forEach(a => {
+      a.classList.toggle('active', a.dataset.route === route);
+    });
+    if (route === 'today') { pickedSlot = pendingPick; pendingPick = null; openSnooze = null; renderToday(); }
+    if (route === 'history') renderHistory();
+    if (route === 'card') renderMedCard();
+    if (route === 'meds') renderMeds();
+    if (route === 'prefs') renderPrefs();
+    window.scrollTo(0, 0);
+  }
+
+  // 로고: 어느 화면에서든 오늘 화면으로. 이미 오늘 화면이면 처음 상태로 맨 위에서 다시 보여 줌
+  document.querySelectorAll('.home-link').forEach(a => a.addEventListener('click', e => {
+    if (currentRoute() !== 'today' || location.hash !== '#today') return; // 해시가 바뀌며 render()가 처리
+    e.preventDefault();
+    render();
+  }));
+
+  window.addEventListener('hashchange', render);
+  render();
+  checkReminders();
+</script>
+</body>
+</html>
