@@ -1,5 +1,6 @@
-# GitHub Pages에는 앱(index.html)만 올린다.
+# GitHub Pages에는 앱(index.html)과 소개 영상(guide.mp4)만 올린다.
 # 기획서·진행 기록 등에는 개인 복약 정보가 있어 저장소에 넣지 않는다.
 *
 !index.html
+!guide.mp4
 !.gitignore
